@@ -10,7 +10,7 @@ The tagline is frozen. It is the constitution, not decoration: every rule, gate,
 
 ## Facts
 
-- **Version:** 2.0.0 — the npm + installer-CLI release
+- **Version:** 2.0.1 — the npm + installer-CLI release
 - **Author:** Ver Sangil
 - **License:** MIT
 - **Root file:** `AGENTS.md` — universal rule; delivered via `@papabear911/ver` with `ver` installer CLI. Still no daemon or inference-time runtime.

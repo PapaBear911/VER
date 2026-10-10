@@ -25,3 +25,8 @@ Append only. Never rewrite an old entry — a lesson that changed is a new entry
 
 - **Learning:** Removing release delta history and stack-specific snippets makes a repository rule-set universally readable as a cohesive system rather than an evolution changelog.
 - **Next V seed:** Audit per-agent documentation in `INSTALL.md` to ensure matching concise brevity.
+
+## 2026-10-10 — v2.0.1: Version bump across metadata and documentation
+
+- **Learning:** Synchronizing version markers across metadata, documentation examples, and test assertions ensures installation and documentation consistency without stale references.
+- **Next V seed:** Add automated version-consistency test verifying `VERSION`, `package.json`, and `AGENTS.md` match.
