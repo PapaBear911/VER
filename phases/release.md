@@ -2,43 +2,64 @@
 
 Deep dive. `AGENTS.md` stays authoritative; this file adds method.
 
-Three sub-steps — **Refinement**, **Rollout**, **Release** — ending in one hard gate. The
-Karpathy principles and the 7-rung Ponytail ladder remain active. Shipping is not a reward for
-finishing; it is a claim that must be checked.
+Sub-steps: **Refinement**, **Rollout**, **Release**. Ends in one hard gate.
+Clause served: **Ship it.**
+
+Loaded profiles may add gates here. Complete them before Gate 3.
 
 ## 1. Refinement — deletion checklist
 
-Read the entire diff top to bottom. Ask of every changed line:
+Read the entire diff top to bottom. For every changed line:
 
 - Does the approved Vision require it?
 - Does anything call it?
 - Does it duplicate something already in the codebase?
 - Is there a simpler rung on the Ponytail ladder that still holds?
-- Does the comment explain *why*, rather than narrate *what* the code says?
+- Does the comment explain *why*, not narrate *what* the code says?
 - Is there generated or temporary output that should not ship?
 
-Delete the line when the answer is no. Re-run the narrowest verification after deletion.
+Delete when the answer is no. Re-run narrowest verification after deletion.
 
 ## 2. Rollout — 3× sanity check
 
-Three checks. All three, in this order:
+1. **Verification:** re-run the narrowest test or command. Show output.
+2. **Public surface:** check exported names, signatures, config keys, CLI flags, schema. Name
+   every changed surface; confirm the rest stayed unchanged.
+3. **Drift:** naming, comments, and behavior agree.
 
-1. **Verification:** run the narrowest relevant test or command one more time. Show the output.
-   The final diff is not the diff you tested before cleanup.
-2. **Public surface:** inspect exported names, function signatures, config keys, CLI flags,
-   schemas, and documented behavior. State every new or changed surface; confirm the rest stayed
-   unchanged.
-3. **Drift:** naming, comments, and behavior agree. No plan left behind in the code; no test
-   left behind in the plan.
+## 3. Release — layered security and rollback
 
-## 3. Release — close the arc
+### Layered security walkthrough
 
-Answer these four questions:
+Every release runs through the model:
 
-1. What shipped? One sentence, naming the behavior, not the files.
-2. What was deliberately skipped? Say "nothing" if nothing.
-3. What should the user watch? Say "nothing" if nothing.
-4. What did you learn? One sentence. Write it to `vision-log.md`.
+```text
+Diff created
+     │
+     ▼
+Layer 1: Automated Gate (runs on EVERY release)
+  - OWASP-class patterns (SQLi, XSS, SSRF, path traversal)
+  - Hardcoded secrets, keys, credentials
+  - Insecure deserialization, unvalidated input
+     │
+     ├─ PASS ──► sensitive surface touched?
+     │                ├─ NO  ──► proceed
+     │                └─ YES ──► Layer 2
+     ▼
+Layer 2: Security Guard (fires on sensitive surfaces)
+  - Sensitive surfaces: auth, secrets, user input, data deletion, admin/permissions, sessions
+  - Contextual checks: logic flaws, data flow, privilege escalation, excessive agency
+     │
+     ├─ CONFIDENT PASS ──► proceed
+     └─ UNCERTAIN OR SEVERE ──► Layer 3
+     ▼
+Layer 3: Human-in-the-Loop (fires on escalation only)
+  - Guard lacks confidence
+  - Change is irreversible or highest severity
+  - Novel pattern
+```
+
+See `references/security-gates.md`.
 
 ### Release note template
 
@@ -54,11 +75,14 @@ Answer these four questions:
 
 ## Verification
 [Exact command and observed result.]
+
+## To undo
+[Command or process to reverse this release completely.]
 ```
 
-### `vision-log.md` format
+The rollback line is **mandatory**. Every release note must say how to undo it.
 
-Append one entry; never rewrite a previous entry:
+### `vision-log.md` format
 
 ```markdown
 ## YYYY-MM-DD — [task name]
@@ -66,17 +90,27 @@ Append one entry; never rewrite a previous entry:
 - **Next V seed:** (one sentence, optional)
 ```
 
-The learning must be about this work — not "tests pass," not "task complete." A good learning
-is reusable: *"The existing parser already normalizes CRLF; test that before adding a second
-normalization pass."* The optional seed is a question or observation for the next Visualize, not
-a disguised task assignment.
+The learning must be about this work. The optional seed feeds the next Visualize.
+
+## Profile gates
+
+Profiles commonly add here:
+
+- **security** — all three layers passed; no unresolved escalation.
+- **ux** — Copy Audit: every message tells the user what happened and what to do next.
+- **devops** — rollback tested or stated; observability check complete.
+- **testing** — coverage delta reported; no regression.
+- **docs** — links verified; examples verified against current code.
+- **data** — migration rollback plan tested or dry-run.
+
+When two profiles add gates to this phase, the stricter gate wins.
 
 ## HARD GATE 3 — Shipped and logged
 
 - [ ] Narrowest verification re-run after refinement; output shown.
-- [ ] Public surface inspected; any change named explicitly.
-- [ ] Drift check complete — code, tests, comments, and approved Vision agree.
-- [ ] Release note answers all four closing-arc questions.
+- [ ] Security gate completed (Layer 1 always; Layer 2/3 if required).
+- [ ] Public surface inspected; all changes named explicitly.
+- [ ] Drift check complete — code, tests, comments, approved Vision agree.
+- [ ] Profile gates for this phase completed.
+- [ ] Release note answers all sections including the rollback line.
 - [ ] `vision-log.md` updated with one learning and optional next-V seed.
-
-If the log cannot be written, Gate 3 is open. A release without a learning is not a closed loop.

@@ -22,7 +22,10 @@ return a single verdict.
    run in this session.
 6. **Run the narrowest verification once more** — after all other checks, because reading can
    change nothing but reading is not running. Show the output.
-7. **Verdict** — Ship or Loop.
+7. **Check profile gates (v1.1.0)** — list the domains the router loaded and confirm each
+   profile's Release gates passed. A profile whose gate was never run is an open loop.
+8. **Check the rollback line** — the release note carries an `## undo` line. If absent, Loop.
+9. **Verdict** — Ship or Loop.
 
 ## Output
 

@@ -9,6 +9,12 @@ Run when: "validate", "does this match the vision?", "are we still on target?"
 Confirm that what was built matches the original approved Vision. Not whether it is good; not
 whether it could be better. Did it change, and where?
 
+## Profile gates (v1.1.0)
+
+Re-run the Task Router against the finished work before validating. Domains that were not
+obvious at Visualize are often obvious at Validate. A profile loaded late still applies its
+gates retroactively — stricter gate wins.
+
 ## Steps
 
 1. Re-read the original Vision (outcome, scope, non-scope, constraints).
