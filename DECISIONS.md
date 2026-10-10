@@ -122,3 +122,21 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
   core rule remains stable across minor versions.
 - **Alternatives rejected:** Semantic versioning with breaking changes in 1.x; adding hooks or
   runtimes in future 1.x minor releases.
+
+## 2026-10-10 — v2.0.0: npm distribution and installer CLI
+
+- **Decision:** Ship V.E.R. as `@papabear911/ver` with a one-shot installer CLI, and bump the
+  major version to 2.0.0.
+- **Rationale:** npm is the lowest-friction distribution channel; the installer respects
+  append-never-replace; the CLI is a file placer, not a runtime.
+- **Rejected alternatives:** curl-only stays supported but is not the primary path; no
+  `postinstall` hook — writing to a user's repo without an explicit command is replacement by
+  surprise; no runtime, hook, or daemon.
+- **Rollback plan:** *"To undo v2.0.0: run `npm uninstall -g @papabear911/ver`, then follow §7
+  Uninstall in `INSTALL.md` to remove the appended VER blocks. The curl path in §2 remains valid
+  and requires no rollback."*
+- **Amended invariants:** #9 — delivery mechanism becomes npm + CLI at 2.0.0; #14 —
+  append-never-replace is now enforced by an installer, not by convention.
+- **Supersedes:** "2026-10-10 — AGENTS.md delivery", whose rejection of a CLI applied to the 1.x
+  stability line. That rejection is now itself superseded, by deliberate act, in this entry — not
+  by drift.
