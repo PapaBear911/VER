@@ -17,4 +17,7 @@ Five principles, one line each. Always active — in every phase, on every turn.
 These do not replace the Ponytail ladder; they run alongside it. The ladder asks *how little
 code is enough*; these principles ask *what code is worth writing at all*.
 
+Both stay active regardless of which domain profiles the Task Router loaded. A profile adds
+gates; it never removes a principle.
+
 See `references/ponytail-ladder.md`.

@@ -42,14 +42,20 @@ rows.sort(key=lambda row: row.created_at)
 No comment is needed for ordinary code with no deliberate ceiling. This convention makes
 simplifications explicit; it does not excuse missing requirements.
 
+## The stacking rule
+
+A loaded domain profile may add gates on top of the ladder. When two profiles add gates to the
+same phase, the **stricter gate wins**. Rung 1 (YAGNI) never deletes a profile's gate — the gate
+was requested by the loaded profile, and requested means required.
+
 ## Lazy, not negligent
 
 The ladder is not permission to cut corners. These are **never** on the chopping block:
 
 - Input validation at trust boundaries.
 - Error handling that prevents data loss.
-- Security.
-- Accessibility.
+- Security (see `references/security-gates.md`).
+- Accessibility and the five interface states (see `references/ux-checklist.md`).
 - Anything explicitly requested in the approved Vision.
 
 Use the fewest lines that satisfy the real requirement, including its safety requirements.

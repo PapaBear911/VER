@@ -2,169 +2,146 @@
 
 Deep dive. `AGENTS.md` stays authoritative; this file adds method.
 
-Three sub-steps — **Establish**, **Engineering**, **Execution** — ending in one hard gate.
-The Karpathy principles and the 7-rung Ponytail ladder are active throughout.
+Sub-steps: **Establish**, **Engineering**, **Execution**. Ends in one hard gate.
+Clause served: **Build it.**
+
+Loaded profiles may add gates here. Complete them before Gate 2.
 
 ## 1. Establish — read-first protocol
 
-Read before you write. The order matters:
+1. Open every file the Vision names. Read the relevant sections plus enough surrounding code to
+   see the local pattern.
+2. Locate every symbol you intend to call. Confirm exact signature, parameter names/order,
+   return shape, and error behavior by reading its definition.
+3. Confirm imports resolve. A package on your mental list is not a package installed here.
+4. Note conventions: file naming, test location, error style, comment density. Match them.
+5. If a symbol the Vision depends on does not exist, return to Visualize. Do not invent an API.
 
-1. Open every file the Vision names. Read the sections you will modify, plus enough around them
-   to see the local pattern.
-2. Locate every symbol you intend to call. Confirm the exact signature — parameter names and
-   order, return shape, error behavior — by reading its definition, not recalling it.
-3. Confirm imports resolve. A package that exists on your mental list is not a package that is
-   installed here.
-4. Note the surrounding conventions: file naming, test location, error style, comment density.
-   Match them. This is not a style preference — it is what makes the diff reviewable.
+## 2. Engineering — the seven-rung Ponytail ladder
 
-If a symbol the Vision depends on does not exist, that is a Phase 1 problem. Go back, do not
-invent the API in place.
+Start at rung 1. Stop at the first rung that holds. Never skip a rung.
 
-## 2. Engineering — the Ponytail ladder, all seven rungs
+### Rung 1 — Does this need to exist? (YAGNI)
 
-Stop at the first rung that holds. Never climb a rung without checking the one below it.
-
-### Rung 1 — Does this need to exist at all? (YAGNI)
-
-The best code is the code never written. Before anything: is this task real, or did it appear
-because the last sentence implied it?
+If nobody needs it now, don't write it. A config value that never changes is a constant, not a
+setting.
 
 ```python
-# A config option for a value that has never changed and nobody has asked to change.
-# ponytail: hardcode it; add a setting when someone actually asks twice.
+# Before: config system for a retry count that's always 3
 RETRY_LIMIT = 3
 ```
 
 ### Rung 2 — Is it already in the codebase?
 
-Search first. The repo almost certainly has a helper for the thing you are about to write.
+Search before writing. The helper may already exist and be tested.
 
 ```python
-# Before: def format_user(u): return f"{u.first} {u.last}"
-# After:  from .people import full_name   # exists, tested, already used in 4 files
+# Before: write format_user(u) yourself
+# After:  from .people import full_name  # existing, used in 4 files
 ```
 
 ### Rung 3 — Does the standard library do it?
 
-The stdlib is already installed, already audited, already documented.
-
 ```python
-# Before: hand-rolled topological sort
-# After:  import heapq          # or collections.deque, itertools, pathlib, dataclasses
+# pathlib before path string surgery
+from pathlib import Path
 ```
 
 ### Rung 4 — Does the native platform feature do it?
 
-CSS before JS. `TEXT` column with a `CHECK` before app-level validation. OS-level file locking
-before a custom one. A DB constraint before an app code path that reports the same error.
+CSS before JS. Database constraint before app-level validation. Browser input before custom
+widget.
 
 ```css
-/* Before: JS scroll listener toggling a class */
-.sticky { position: sticky; top: 0; }   /* after: zero JavaScript */
+.sticky { position: sticky; top: 0; }
 ```
 
 ### Rung 5 — Is an already-installed dependency doing it?
 
-Rung 4's cousin: don't add a new dependency when a loaded one covers it. Rung 5's wall is
-adding a package for what a few lines can do — because a new dependency is a new supply chain,
-a new upgrade cadence, and a new thing to explain in review.
-
-```python
-# Before: pip install humanize      # new dependency for one function
-# After:  f"{seconds}s"             # 4 characters, no supply chain
-```
+Reuse what the project trusts. Never add a package when a few lines or an installed dependency
+works.
 
 ### Rung 6 — Can it be one line?
 
-One line, when one line holds. Not one line at the cost of clarity — one line because the
-shortest correct expression is already the readable one.
+If one clear line holds, don't write a helper. Clarity beats line-count tricks.
 
 ```python
-# Before: five lines of manual dedupe
-# After:  seen = list(dict.fromkeys(items))   # order-preserving, O(n)
+seen = list(dict.fromkeys(items))  # ordered dedupe
 ```
 
 ### Rung 7 — Minimum code that works
 
-The floor. After every rung above has failed to remove the need: write the smallest amount of
-code that satisfies the approved Vision — no more.
+After every earlier rung fails: implement exactly the approved Vision, no more.
 
-## Rules for writing code
+## Rules of writing
 
-- **No unrequested abstractions.** No interface with one implementation, no factory for one
-  product, no config for a value that never changes.
-- **No scaffolding for later.** No boilerplate, no empty directories, no `utils/` reserved for
-  files nobody has needed yet.
-- **Deletion over addition.** Prefer removing a line to adding one; prefer removing a feature to
-  defending it.
-- **Boring over clever.** Clever code is a tax paid by the next reader, every time.
-- **One file until it hurts.** Split on evidence, not anticipation.
-- **Never simplify away:** validation at trust boundaries, error handling that prevents data
-  loss, security, accessibility, or anything the Vision explicitly asked for.
+- No unrequested abstractions. No interface with one implementation, no factory for one product.
+- No scaffolding for later. No config for a value that never changes.
+- Delete before adding. One file until it hurts. Split on evidence, not anticipation.
+- Boring over clever. Match the codebase before introducing a pattern.
+- Never simplify away trust-boundary validation, data-loss handling, security, accessibility, or
+  anything the approved Vision explicitly requires.
 
-### The `ponytail:` comment convention
+### `ponytail:` comment convention
 
-Mark every deliberate simplification — the ceiling you accepted and the upgrade path when it
-stops holding. Format: `ponytail: <ceiling> — <upgrade path>`.
+Mark deliberate simplifications with their ceiling and upgrade path:
 
 ```python
-# ponytail: sorts in memory for up to ~100k rows — switch to a DB ORDER BY when we exceed that
-rows.sort(key=lambda r: r.created_at)
-
-# ponytail: treats any 4xx from /login as bad credentials — split 429 out when rate limits land
-except requests.HTTPError as exc:
-    raise BadCredentials from exc
+# ponytail: sorts up to ~100k rows in memory — use DB ORDER BY beyond that
+rows.sort(key=lambda row: row.created_at)
 ```
 
-No `ponytail:` comment means the simplification was not a decision — it was an accident waiting
-to be discovered in production. Auditing these is part of `refine/enhance.md`.
+Ordinary code needs no comment. A simplification with a real ceiling does.
 
 ## 3. Execution — running code is the only truth
 
-Run it. Not "the tests should pass." Run them, in this session, and show the output.
+Run it in this session. Show the command and observed output.
 
-- Claiming a run that did not happen is a hallucination and a gate failure.
-- A test written but never executed is a hypothesis, not a test.
-- A test that passes without ever having failed proves nothing — it asserts nothing.
-- If you cannot run it, say why plainly and let the user decide. Do not substitute a reading
-  for a run.
+- A test written but not executed is a hypothesis, not a test.
+- A test that has never failed proves nothing — its assertion may be wrong.
+- If you cannot run it, say why. Reading is not running.
 
 ### TDD inner loop
 
-Per unit of behavior, repeat:
-
-```
+```text
 1. Write the smallest test that fails for the right reason.
-2. Run it.          → RED.      (If it passes, the test is wrong — fix the test.)
-3. Write the minimum code to pass it.
-4. Run it.          → GREEN.
-5. Refactor with the ladder active. Run again.  → GREEN.
-6. Next unit.
+2. Run it.                 → RED. If it passes, fix the test.
+3. Write minimum code.     → GREEN.
+4. Refactor with ladder.   → GREEN again.
+5. Repeat for next behavior.
 ```
-
-The RED step is the whole point: a test that never fails has never checked anything.
 
 ### One-hypothesis debugging
 
-1. State **one** hypothesis: *"The cache key ignores the `locale` parameter."*
-2. State the observation that would falsify it: *"Print the key for two locales; if identical,
-   the hypothesis holds."*
+1. State one hypothesis: *"The cache key ignores locale."*
+2. Name the observation that would falsify it.
 3. Run exactly that check.
-4. Update: confirmed → act on it. Refuted → discard it and state the next one.
+4. Update: confirmed → act; refuted → discard and state the next one.
 
-Never change two things to see what happens. You learn nothing, and you cannot undo either one.
+Never change two things at once to see what happens.
+
+## Profile gates
+
+Profiles commonly add here:
+
+- **security** — validation test, parameterized queries, no secrets in code or logs.
+- **ux** — Human-Path Test: walk the flow as a person, not as a test suite.
+- **ui** — run the page, not only the test; inspect rendered behavior.
+- **data** — reproducible run, pinned inputs and seeds.
+- **devops** — plan → apply → verify replaces "run the code."
+- **testing** — smallest failing test before implementation.
+- **docs** — prose teaches from the code; no stale claims.
+
+When two profiles add gates to this phase, the stricter gate wins.
 
 ## HARD GATE 2 — Evidence shown
 
-- [ ] Read-first completed; no API, signature, or import asserted from memory.
-- [ ] Every rung of the ladder was considered in order; the chosen design starts at the lowest rung that holds.
-- [ ] Vision implemented as approved — no scope added, none silently dropped.
-- [ ] Ladder decisions that were deliberate carry a `ponytail:` comment.
-- [ ] Tests actually executed in this session; output shown, not summarized.
-- [ ] The claimed behavior was observed running, not inferred from reading the code.
+- [ ] Read-first complete; no API/signature/import asserted from memory.
+- [ ] All seven rungs considered in order; chosen design uses the first that holds.
+- [ ] Approved Vision implemented; scope neither added nor silently dropped.
+- [ ] Deliberate simplifications marked with `ponytail:`.
+- [ ] Profile gates for this phase completed.
+- [ ] Tests actually executed in this session; output shown.
+- [ ] Claimed behavior observed running, not inferred from reading code.
 
-## When this gate fails twice
-
-Two failures on Gate 2 means the Vision is wrong, not the Engineer weak. Stop, report what the
-gate required and what evidence was missing, and send the fix upstream to Phase 1.
+Two failures on Gate 2 means the Vision is wrong. Stop, report, return the fix upstream to Phase 1.

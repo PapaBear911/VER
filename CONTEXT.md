@@ -1,32 +1,45 @@
 # CONTEXT
 
-Seed document for V.E.R. Read this to know what the project is without reading everything else.
+Seed document for V.E.R. Read this to understand the project's purpose and frozen contracts.
+
+## Core Vision
+
+> See it. Build it. Ship it. Every release feeds the next vision.
+
+The tagline is frozen. It is the constitution, not decoration: every rule, gate, and profile must serve one of its four clauses. See it means understand before touching. Build it means choose the smallest working change. Ship it means do not ship a lie. The final clause makes each release seed the next Vision.
 
 ## Facts
 
-- **Version:** 1.0.0 (first stable release)
+- **Version:** 1.1.0 — the Router release
 - **Author:** Ver Sangil
 - **License:** MIT
-- **Root file:** `AGENTS.md` — the delivery mechanism. Everything else is reference.
+- **Root file:** `AGENTS.md` — universal rule; one file, no hooks, CLI, or runtime.
 - **Loop:** Visualize → Engineer → Release → Visualize.
+- **Router:** classify the task before Phase 1; load relevant additive profiles from `profiles/`.
+- **Stacking:** profiles stack; where gates overlap, the stricter gate wins.
+- **Security:** every Release runs automated scanning; sensitive surfaces escalate to a context-aware guard; uncertainty or irreversible/highest-severity changes escalate to a human.
+- **UX:** Five-State Check in Visualize, Human-Path Test in Engineer, Copy Audit in Release.
+- **Rollback:** every release note ends with `To undo: [command or process]`.
 
-## What a task is
+## What counts as a task
 
-- **Code changes run the loop.** Any change to code, config, schema, or dependencies goes
-  through all three phases and their hard gates.
-- **Pure questions are answered directly.** No phases, no gates, no log entry. The loop exists
-  to ship work, not to discuss it.
+- **Code, configuration, schema, or dependency changes run the loop.** Route the task, complete loaded profile gates, and pass all three phase gates.
+- **Pure questions are answered directly.** No phases, gates, or log entry.
+- **Documentation changes** run the loop with the `docs` profile; a simple factual answer does not.
 
-## What "user approval" means
+## User approval
 
 An approval is one of: `yes`, `go`, `approved`, `ship it`, `looks good`.
 
-Everything else is not approval. Silence is not approval. An emoji is not approval. A topic
-change is not approval. A previous approval does not carry over to a changed plan — a Vision
-that changed needs to be approved again.
+Anything else is not approval. Silence, an emoji, or a topic change is not approval. Approval
+applies only to the Vision as presented. A changed Vision needs approval again.
 
-Approval applies to the Vision as presented, including its stated tradeoffs and exclusions.
-Approving a plan that says "we will not touch the config layer" is approval of that exclusion.
+## Task Router
+
+The frozen router shape is a keyword/domain table plus `@domain` and `@domain+domain`
+overrides. The router selects profiles; profiles only add gates and never replace the base loop.
+The eight v1.1.0 profiles are programming, security, ui, ux, data, devops, testing, and docs.
+No match runs the base loop. A pure question bypasses routing.
 
 ## Refine Pass
 
@@ -34,33 +47,28 @@ Optional, three passes, each one file:
 
 | Pass | File | Purpose |
 |---|---|---|
-| Validate | `refine/validate.md` | Built work vs. approved Vision — gap and drift. |
-| Enhance | `refine/enhance.md` | Re-climb the Ponytail ladder on finished work. |
-| Review | `refine/review.md` | Read the diff end to end; verdict Ship or Loop. |
-
-Any pass may be skipped. `refine/review.md` returning **Ship** is the only substitute for the
-final look before Gate 3.
+| Validate | `refine/validate.md` | Compare built work with the approved Vision. |
+| Enhance | `refine/enhance.md` | Re-climb the Ponytail ladder; shrink the diff. |
+| Review | `refine/review.md` | Read end to end; return Ship or Loop. |
 
 ## Frozen facts
 
-These do not change in 1.x:
-
+- **Tagline:** “See it. Build it. Ship it. Every release feeds the next vision.”
 - **Acronym:** V.E.R. = Visualize → Engineer → Release.
-- **Phase names:** Visualize, Engineer, Release — and their sub-steps: Visualize / Validate /
-  Vision; Establish / Engineering / Execution; Refinement / Rollout / Release.
-- **Always-active rule-sets:** the Karpathy principles and the 7-rung Ponytail ladder. They
-  apply in every phase on every turn and cannot be suspended for a phase.
-- **Delivery mechanism:** `AGENTS.md`.
-- **Learning artifact:** `vision-log.md`, one line per release.
+- **Phase names:** Visualize, Engineer, Release.
+- **Sub-step names:** Visualize / Validate / Vision; Establish / Engineering / Execution; Refinement / Rollout / Release.
+- **Refine names:** Validate, Enhance, Review.
+- **Router shape:** domain keyword table and `@domain` / `@domain+domain` syntax; profile additions are allowed, syntax changes are not.
+- **Always-active rules:** Karpathy principles and the 7-rung Ponytail ladder.
+- **Delivery:** root `AGENTS.md`; no hooks, CLI, or runtime in 1.x.
+- **Installation:** append, never replace any existing agent configuration or user content.
 
-## Stability commitment (v1.0.0)
+## Stability commitment (v1.1.0)
 
-V.E.R. 1.0.0 is the first stable release and the floor for all of 1.x.
+Phase names, sub-step names, refine-pass names, tagline, acronym, delivery mechanism, and router
+syntax are frozen for all 1.x releases. Router and Profiles are the sole structural addition
+permitted in 1.x. Profiles may be added; the router syntax may not change. Other additions may
+only be new references, examples, or clarifications — never new phases, gates, or mechanisms.
 
-- Phase names, gate count, and gate order are frozen.
-- `AGENTS.md` stays the delivery mechanism. No hooks, no CLI, no runtime in 1.x.
-- Additions in 1.x may only be new reference files, new examples, or clarifications — never new
-  phases, new gates, or new mechanisms.
-
-A trust layer that shifts under its users stops being a trust layer. The same commitment is
-stated in `README.md`, `INVARIANTS.md`, and `DECISIONS.md`.
+Trust layers must not shift under their users. This commitment is recorded in `INVARIANTS.md`
+and `DECISIONS.md`.

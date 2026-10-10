@@ -9,6 +9,11 @@ Run when: "tighten it", "simplify", "delete anything unnecessary", "make the dif
 Re-climb the 7-rung Ponytail ladder on the finished work. A change written under momentum
 frequently holds at a simpler rung when viewed whole.
 
+## Profile gates (v1.1.0)
+
+Rung 1 is the strongest rung, but it never deletes a gate a profile added. Before removing a
+line, ask: did a loaded profile require it? If yes, it is not optional and not deletable.
+
 ## Steps
 
 1. Read the diff top to bottom.

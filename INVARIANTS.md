@@ -1,18 +1,24 @@
 # INVARIANTS
 
 Rules that never change unless explicitly overridden. An override must be written down in
-`DECISIONS.md` with its rationale — it is not something that happens by drift.
+`DECISIONS.md` with its rationale and alternatives rejected — it is not something that happens
+by drift.
 
-1. Visualize always precedes Engineer.
-2. Engineer always precedes Release.
-3. The Ponytail ladder is always active.
-4. The Karpathy principles are always active.
-5. Running code is the only truth.
-6. Every release writes one line to `vision-log.md`.
-7. No new dependency when the stdlib or the platform already does it.
-8. The three phase names — Visualize, Engineer, Release — are frozen for all 1.x releases.
-9. No hooks, CLIs, or runtimes are introduced in 1.x.
-10. Author attribution is Ver Sangil.
+1. **The tagline is frozen:** “See it. Build it. Ship it. Every release feeds the next vision.”
+2. Visualize always precedes Engineer.
+3. Engineer always precedes Release.
+4. The Ponytail ladder is always active.
+5. The Karpathy principles are always active.
+6. Running code is the only truth.
+7. Every release writes one line to `vision-log.md`.
+8. No new dependency when the stdlib or the platform already does it.
+9. Phase names, sub-step names, and refine-pass names are frozen for all 1.x releases.
+10. The router shape is frozen: keyword/domain table plus `@domain` / `@domain+domain`.
+11. Profiles are additive: they add gates to existing phases; they never replace the loop.
+12. The security gate runs on every Release. Non-negotiable.
+13. Every release note includes a rollback line.
+14. Installation appends; it never replaces existing agent config.
+15. Author attribution is Ver Sangil.
 
 ## On being overridden
 
