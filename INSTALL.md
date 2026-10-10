@@ -30,7 +30,35 @@ Three ways VER joins an existing file, in order of preference:
 
 ## 2. The Quick Install (Universal)
 
-One command to place `AGENTS.md` at the repo root:
+One command installs the full rule set — `AGENTS.md` plus `profiles/`, `phases/`, `refine/`,
+and `references/` — with no clone and no manual copying:
+
+```bash
+npx @papabear911/ver --project
+```
+
+Three install paths, one package:
+
+| Path | Command | Writes to |
+|---|---|---|
+| **Project** | `npx @papabear911/ver --project [dir]` | `dir` (default `.`) — rule dirs, plus `AGENTS.md` |
+| **User-global** | `npx @papabear911/ver --global` | `~/.claude/ver/`, plus an `@ver/AGENTS.md` import in `~/.claude/CLAUDE.md` |
+| **Agent config** | `npx @papabear911/ver --agent <name>` | the one config file that agent needs (see § 3) |
+
+Prefer a permanent CLI? Either works identically:
+
+```bash
+npm install -g @papabear911/ver && ver --project
+npm install -D @papabear911/ver && npx ver --project
+```
+
+**If `AGENTS.md` already existed, read § 4 before continuing.** The installer never overwrites
+it — your file keeps its content, and VER's rule is written to `ver/AGENTS.md` with a one-line
+pointer added at the top of yours.
+
+### Curl-only (still supported)
+
+If you want nothing but the core rule, and no profiles:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/PapaBear911/VER/main/AGENTS.md -o AGENTS.md
@@ -38,10 +66,7 @@ curl -fsSL https://raw.githubusercontent.com/PapaBear911/VER/main/AGENTS.md -o A
 
 **If `AGENTS.md` already existed, stop here and read § 4 before continuing.**
 
-If it did not exist, you are done — most agents read `AGENTS.md` natively. Check your agent
-below only if you want the profile files or your agent has its own config file.
-
-For the full reference set (profiles, phases, refine passes):
+For the full reference set by hand:
 
 ```bash
 git clone https://github.com/PapaBear911/VER.git /tmp/ver-src
@@ -81,8 +106,9 @@ automatically.
 
 Cursor reads `AGENTS.md` natively at the project root.
 
-- **Nothing else to do.** `.cursor/rules/` is a simpler alternative if you prefer it, but it is
-  not required.
+- **Nothing else to do** if you use the native rule.
+- To add an explicit Cursor rule, run `npx @papabear911/ver --agent cursor`. It writes
+  `.cursor/rules/ver.mdc` with required YAML frontmatter. Existing `.mdc` content is preserved.
 - **If `.cursorrules` exists (legacy):** leave it. Cursor reads both. This file still works but
   is deprecated.
 - **If you want VER as a Cursor rule instead:** create `.cursor/rules/ver.mdc` with
@@ -128,20 +154,26 @@ natively, use the marked block in § 4 — it is the universal fallback.
 
 ## 4. Append Protocol (for existing config files)
 
-When your agent has its own config file and no import mechanism, append a marked block at the
-**top** of the existing file, above the existing content:
+When your agent has its own config file and no import mechanism, the installer appends a marked
+block at the **top** of the existing file, above your existing content:
 
 ```markdown
-<!-- VER v1.1.0 — begin -->
+<!-- VER v2.0.0 — begin -->
 Read AGENTS.md at the repo root. Apply the VER loop to every task.
-<!-- VER v1.1.0 — end -->
+<!-- VER v2.0.0 — end -->
 ```
 
 The marker makes repeat installs idempotent — running the installer again does not duplicate the
-block. This is the established pattern: **add, don't replace.**
+block. Detection matches the `<!-- VER ` **prefix**, not the version stamp, so upgrading from an
+older VER finds the old block and leaves it alone rather than stacking a second one. This is the
+established pattern: **add, don't replace.**
 
 To update the version later, replace only the text between the markers. Everything outside them
 is not yours to touch.
+
+**If you already have an `AGENTS.md`**, the installer leaves it exactly as it is and writes VER's
+rule to `ver/AGENTS.md` instead, adding a single pointer line to the top of yours. Your file
+keeps its content verbatim; the rule is one line away.
 
 ---
 
@@ -190,10 +222,21 @@ I already have an AGENTS.md. What does VER do?
 
 ## 7. Uninstall
 
+**Removing the CLI** (it wrote nothing — it only placed files):
+
+```bash
+npm uninstall -g @papabear911/ver   # if installed globally
+npm uninstall @papabear911/ver      # if installed as a project dependency
+```
+
+**Removing the rules**, in the reverse order they were installed:
+
 1. Remove the marked VER block from any config file (§ 4).
-2. Remove the `AGENTS.md` you placed.
-3. Remove `profiles/`, `phases/`, `refine/`, and `references/` if you copied them.
-4. Remove the `@AGENTS.md` import line from `CLAUDE.md` or `GEMINI.md` if you added one.
+2. Remove the `@AGENTS.md` (or `@ver/AGENTS.md`) import line from `CLAUDE.md` or `GEMINI.md`.
+3. Remove `ver/AGENTS.md` if the installer created it because you already had an `AGENTS.md`.
+4. Remove the root `AGENTS.md` **only if the installer created it** — if you wrote it yourself,
+   keep it.
+5. Remove `profiles/`, `phases/`, `refine/`, and `references/`.
 
 **Do not delete any file content that existed before VER was installed.** Uninstall removes VER
 and nothing else — if you cannot tell which lines were yours, you installed it wrong.
@@ -205,5 +248,8 @@ and nothing else — if you cannot tell which lines were yours, you installed it
 - Never deletes an existing agent config file.
 - Never overwrites existing content in one.
 - Never reorders or reformats your rules.
-- Never installs a hook, a CLI, or a runtime.
+- Never overwrites a file it did not create — an existing `AGENTS.md`, `CLAUDE.md`, or
+  `GEMINI.md` keeps its content, and VER's rule goes to `ver/AGENTS.md` with a one-line pointer.
+- Never installs a hook or a daemon.
 - Never requires a build step, a daemon, or a network call at inference time.
+- The `ver` CLI runs once, when you invoke it. It is a file placer, not a runtime.

@@ -12,12 +12,15 @@ by drift.
 6. Running code is the only truth.
 7. Every release writes one line to `vision-log.md`.
 8. No new dependency when the stdlib or the platform already does it.
-9. Phase names, sub-step names, and refine-pass names are frozen for all 1.x releases.
+9. Phase names, sub-step names, and refine-pass names are frozen. 1.x froze the delivery
+   mechanism (root `AGENTS.md`, no CLI); v2.0.0 supersedes that clause — delivery is now npm +
+   installer CLI, per the dated `DECISIONS.md` entry.
 10. The router shape is frozen: keyword/domain table plus `@domain` / `@domain+domain`.
 11. Profiles are additive: they add gates to existing phases; they never replace the loop.
 12. The security gate runs on every Release. Non-negotiable.
 13. Every release note includes a rollback line.
-14. Installation appends; it never replaces existing agent config.
+14. Installation appends; it never replaces existing agent config. In v2.0.0, this is enforced by
+   the installer CLI (`bin/ver.js`), not by convention alone.
 15. Author attribution is Ver Sangil.
 
 ## On being overridden

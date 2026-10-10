@@ -10,10 +10,10 @@ The tagline is frozen. It is the constitution, not decoration: every rule, gate,
 
 ## Facts
 
-- **Version:** 1.1.0 — the Router release
+- **Version:** 2.0.0 — the npm + installer-CLI release
 - **Author:** Ver Sangil
 - **License:** MIT
-- **Root file:** `AGENTS.md` — universal rule; one file, no hooks, CLI, or runtime.
+- **Root file:** `AGENTS.md` — universal rule; delivered via `@papabear911/ver` with `ver` installer CLI. Still no daemon or inference-time runtime.
 - **Loop:** Visualize → Engineer → Release → Visualize.
 - **Router:** classify the task before Phase 1; load relevant additive profiles from `profiles/`.
 - **Stacking:** profiles stack; where gates overlap, the stricter gate wins.
@@ -60,15 +60,15 @@ Optional, three passes, each one file:
 - **Refine names:** Validate, Enhance, Review.
 - **Router shape:** domain keyword table and `@domain` / `@domain+domain` syntax; profile additions are allowed, syntax changes are not.
 - **Always-active rules:** Karpathy principles and the 7-rung Ponytail ladder.
-- **Delivery:** root `AGENTS.md`; no hooks, CLI, or runtime in 1.x.
+- **Delivery:** npm package `@papabear911/ver` with a one-shot `ver` CLI; no daemon or inference-time runtime.
+- **Install paths:** project (`ver --project [dir]`), user-global (`ver --global`), or agent config (`ver --agent claude|cursor|gemini`).
 - **Installation:** append, never replace any existing agent configuration or user content.
 
-## Stability commitment (v1.1.0)
+## Stability commitment (1.x)
 
-Phase names, sub-step names, refine-pass names, tagline, acronym, delivery mechanism, and router
-syntax are frozen for all 1.x releases. Router and Profiles are the sole structural addition
-permitted in 1.x. Profiles may be added; the router syntax may not change. Other additions may
-only be new references, examples, or clarifications — never new phases, gates, or mechanisms.
+Phase names, sub-step names, refine-pass names, tagline, acronym, and router syntax remain frozen.
+The 1.x delivery freeze is superseded in 2.0.0 by the npm package and one-shot installer CLI,
+per the dated decision in `DECISIONS.md`. 1.x's other stability commitments remain unchanged.
 
 Trust layers must not shift under their users. This commitment is recorded in `INVARIANTS.md`
 and `DECISIONS.md`.

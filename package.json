@@ -1,0 +1,28 @@
+{
+  "name": "@papabear911/ver",
+  "version": "2.0.0",
+  "description": "V.E.R. — Visualize → Engineer → Release. Universal agent rules, with an installer that appends and never replaces.",
+  "bin": {
+    "ver": "bin/ver.js"
+  },
+  "files": [
+    "bin",
+    "AGENTS.md",
+    "VERSION",
+    "LICENSE",
+    "README.md",
+    "profiles",
+    "phases",
+    "refine",
+    "references"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/ver.test.js",
+    "prepublishOnly": "npm test"
+  },
+  "license": "MIT",
+  "author": "Ver Sangil"
+}
