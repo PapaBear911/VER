@@ -165,7 +165,7 @@ Two rule-sets are **always active** — every phase, every turn, no opt-out:
 **One file. Drop it at your repo root.**
 
 ```bash
-curl -O https://raw.githubusercontent.com/<your-username>/VER/main/AGENTS.md
+curl -O https://raw.githubusercontent.com/PapaBear911/VER/main/AGENTS.md
 ```
 
 That's the whole install. No hooks, no CLI, no runtime, no config.
@@ -176,7 +176,7 @@ That's the whole install. No hooks, no CLI, no runtime, no config.
 `AGENTS.md` is self-contained — the loop works with that file alone. The `phases/`, `refine/`, and `references/` trees are *progressive disclosure*: deeper method, loaded only when needed.
 
 ```bash
-git clone https://github.com/<your-username>/VER.git /tmp/ver-src
+git clone https://github.com/PapaBear911/VER.git /tmp/ver-src
 cp /tmp/ver-src/AGENTS.md .
 ```
 
@@ -332,7 +332,7 @@ git init
 git add .
 git commit -m "VER v1.0.0 — first stable release by Ver Sangil"
 git branch -M main
-git remote add origin git@github.com:<your-username>/VER.git
+git remote add origin git@github.com:PapaBear911/VER.git
 git push -u origin main
 git tag -a v1.0.0 -m "First stable release — Ver Sangil"
 git push origin v1.0.0
