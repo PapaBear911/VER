@@ -158,9 +158,9 @@ When your agent has its own config file and no import mechanism, the installer a
 block at the **top** of the existing file, above your existing content:
 
 ```markdown
-<!-- VER v2.0.0 — begin -->
+<!-- VER v2.0.1 — begin -->
 Read AGENTS.md at the repo root. Apply the VER loop to every task.
-<!-- VER v2.0.0 — end -->
+<!-- VER v2.0.1 — end -->
 ```
 
 The marker makes repeat installs idempotent — running the installer again does not duplicate the

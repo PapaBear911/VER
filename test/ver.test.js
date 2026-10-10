@@ -56,7 +56,7 @@ test('--agent claude: existing CLAUDE.md rules survive', () => {
   assert.ok(out.startsWith('@AGENTS.md'), 'import line missing at top');
 });
 
-test('cross-version marker: v1.1.0 install + v2.0.0 = no duplicate', () => {
+test('cross-version marker: v1.1.0 install + v2.0.1 = no duplicate', () => {
   const dir = tmp();
   const oldBlock = '<!-- VER v1.1.0 — begin -->\nRead AGENTS.md at the repo root.\n<!-- VER v1.1.0 — end -->\n';
   fs.writeFileSync(path.join(dir, 'AGENTS.md'), oldBlock + 'Rest of file.\n');
