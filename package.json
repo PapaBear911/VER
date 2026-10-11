@@ -14,7 +14,8 @@
     "profiles",
     "phases",
     "refine",
-    "references"
+    "references",
+    "ver-gates"
   ],
   "engines": {
     "node": ">=18"

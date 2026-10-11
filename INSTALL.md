@@ -229,7 +229,15 @@ npm uninstall -g @papabear911/ver   # if installed globally
 npm uninstall @papabear911/ver      # if installed as a project dependency
 ```
 
-**Removing the rules**, in the reverse order they were installed:
+**Removing the rules automatically:**
+
+```bash
+ver --uninstall                   # remove from current project
+ver --uninstall --project [dir]   # remove from target project
+ver --uninstall --global          # remove global install (~/.claude/ver)
+```
+
+Or manually, in the reverse order they were installed:
 
 1. Remove the marked VER block from any config file (§ 4).
 2. Remove the `@AGENTS.md` (or `@ver/AGENTS.md`) import line from `CLAUDE.md` or `GEMINI.md`.

@@ -149,8 +149,12 @@ See `references/security-gates.md`.
 ```markdown
 ## YYYY-MM-DD — [task name]
 - **Learning:** (one sentence)
+- **Recurs:** YYYY-MM-DD — [prior task name] (optional; requires `Promoted:`)
+- **Promoted:** [path] — [exact phrase added to the target] (optional)
 - **Next V seed:** (one sentence, optional)
 ```
+
+A recurring lesson must graduate: `Recurs:` without a resolving `Promoted:` fails Gate 3.
 
 ### HARD GATE 3 — Shipped and logged
 
@@ -195,15 +199,33 @@ Vision is wrong — not that the Engineer is weak. The fix belongs upstream, in 
 
 ---
 
+## Verification Gates (`ver-gates/`)
+
+Six falsifiable gates enforce truth and append-only invariants across all phases:
+
+| Gate | Directory | When Checked | Failure Condition |
+|---|---|---|---|
+| Spec before edit | `ver-gates/spec-before-edit/` | Gate 1 | Code modified before Vision approval |
+| File existence | `ver-gates/file-existence/` | Gate 2 | Referencing unread or non-existent symbols/files |
+| Run before done | `ver-gates/run-before-done/` | Gate 2 | Claiming completion without executed test output |
+| Test integrity | `ver-gates/test-integrity/` | Gate 2/3 | Deleting tests or softening assertions to pass |
+| Receipt log | `ver-gates/receipt-log/` | Gate 3 | Missing/modified past entries; dangling or ungraduated `Recurs:`/`Promoted:` pointer |
+| Deploy aware | `ver-gates/deploy-aware/` | Gate 3 | Missing rollback line or unbalanced config markers |
+
+Audit with: `ver --check [dir]`.
+
+---
+
 ## Core Rules
 
 1. **Take the smallest thing** that moves the task forward. First rung that holds.
 2. **One file** — or one module, one abstraction — **until it hurts.**
 3. **Boring tools, boring code.** Proven over novel; explicit over clever.
 4. **Code is a tutorial.** A reader learns the domain and intent top to bottom.
-5. **Delete aggressively.** Deletion beats addition.
+5. **Delete aggressively.** Deletion beats addition within task blast radius.
 6. **Running code is the only truth.** Everything else is a claim.
 7. **One learning per release.** If nothing went in `vision-log.md`, the loop didn't close.
+8. **Append-only boundaries.** History logs (`vision-log.md`, `DECISIONS.md`) and config blocks are append-only. Never truncate or replace files outside the approved task blast radius.
 
 ---
 

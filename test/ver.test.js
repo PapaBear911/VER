@@ -12,6 +12,10 @@ function run(cwd, ...args) {
   return execFileSync('node', [BIN, ...args], { cwd, encoding: 'utf8' });
 }
 
+function runEnv(cwd, env, ...args) {
+  return execFileSync('node', [BIN, ...args], { cwd, env: { ...process.env, ...env }, encoding: 'utf8' });
+}
+
 function tmp() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'ver-test-'));
 }
@@ -21,7 +25,7 @@ const USER_RULE = '# My real project rules\n\n- Always run tests before commit\n
 test('empty dir: all files created', () => {
   const dir = tmp();
   run(dir, '--project');
-  for (const d of ['profiles', 'phases', 'refine', 'references']) {
+  for (const d of ['profiles', 'phases', 'refine', 'references', 'ver-gates']) {
     assert.ok(fs.existsSync(path.join(dir, d)), `missing ${d}`);
   }
   assert.ok(fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8').includes('# V.E.R.'));
@@ -103,4 +107,127 @@ test('cursor: .mdc written with frontmatter', () => {
 test('unknown agent: exits non-zero', () => {
   const dir = tmp();
   assert.throws(() => run(dir, '--agent', 'nope'), /Unknown agent/);
+});
+
+test('uninstall: removes rules and created AGENTS.md in clean dir', () => {
+  const dir = tmp();
+  run(dir, '--project');
+  assert.ok(fs.existsSync(path.join(dir, 'AGENTS.md')));
+  assert.ok(fs.existsSync(path.join(dir, 'profiles')));
+  run(dir, '--uninstall', '--project', dir);
+  assert.strictEqual(fs.existsSync(path.join(dir, 'AGENTS.md')), false, 'AGENTS.md should be removed');
+  assert.strictEqual(fs.existsSync(path.join(dir, 'profiles')), false, 'profiles should be removed');
+});
+
+test('uninstall: strips marked block and preserves user AGENTS.md and ver/AGENTS.md cleaned', () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'AGENTS.md'), USER_RULE);
+  run(dir, '--project');
+  assert.ok(fs.existsSync(path.join(dir, 'ver', 'AGENTS.md')));
+  run(dir, '--uninstall', '--project', dir);
+  assert.strictEqual(fs.existsSync(path.join(dir, 'ver', 'AGENTS.md')), false, 'ver/AGENTS.md removed');
+  const restored = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8');
+  assert.strictEqual(restored, USER_RULE, 'user AGENTS.md should be restored without VER block');
+});
+
+test('uninstall: agent imports and cursor rule removed', () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'CLAUDE.md'), USER_RULE);
+  run(dir, '--agent', 'claude', '--project', dir);
+  run(dir, '--agent', 'cursor', '--project', dir);
+  assert.ok(fs.existsSync(path.join(dir, '.cursor', 'rules', 'ver.mdc')));
+  assert.ok(fs.readFileSync(path.join(dir, 'CLAUDE.md'), 'utf8').startsWith('@AGENTS.md'));
+  run(dir, '--uninstall', '--project', dir);
+  assert.strictEqual(fs.existsSync(path.join(dir, '.cursor', 'rules', 'ver.mdc')), false);
+  const claudeRestored = fs.readFileSync(path.join(dir, 'CLAUDE.md'), 'utf8');
+  assert.strictEqual(claudeRestored, USER_RULE);
+});
+
+test('global install and uninstall', () => {
+  const fakeHome = tmp();
+  const env = { HOME: fakeHome, USERPROFILE: fakeHome };
+  runEnv(fakeHome, env, '--global');
+  assert.ok(fs.existsSync(path.join(fakeHome, '.claude', 'ver', 'AGENTS.md')));
+  assert.ok(fs.readFileSync(path.join(fakeHome, '.claude', 'CLAUDE.md'), 'utf8').includes('@ver/AGENTS.md'));
+  runEnv(fakeHome, env, '--uninstall', '--global');
+  assert.strictEqual(fs.existsSync(path.join(fakeHome, '.claude', 'ver')), false, 'global ver dir should be removed');
+  assert.strictEqual(fs.existsSync(path.join(fakeHome, '.claude', 'CLAUDE.md')), false, 'empty CLAUDE.md should be removed');
+});
+
+const PRIOR_ENTRY = '## 2026-01-01 — first task\n\n- **Learning:** One.\n\n';
+
+function projectWithLog(dir, log) {
+  run(dir, '--project');
+  fs.writeFileSync(path.join(dir, 'vision-log.md'), log);
+}
+
+test('check: tagged recurrence with resolving, phrase-bearing pointer passes', () => {
+  const dir = tmp();
+  projectWithLog(dir, `${PRIOR_ENTRY}## 2026-02-02 — second task
+- **Learning:** Two.
+- **Recurs:** 2026-01-01 — first task
+- **Promoted:** notes.md — A recurring lesson must graduate.
+`);
+  fs.writeFileSync(path.join(dir, 'notes.md'), 'A recurring lesson must graduate.\n');
+  assert.ok(run(dir, '--check', dir).includes('All gates verified'));
+
+  // Backward compatible: an untagged latest entry still passes.
+  fs.writeFileSync(path.join(dir, 'vision-log.md'), `${PRIOR_ENTRY}## 2026-02-03 — third task
+- **Learning:** Three.
+`);
+  assert.ok(run(dir, '--check', dir).includes('All gates verified'));
+});
+
+test('check: recurrence without promotion fails', () => {
+  const dir = tmp();
+  projectWithLog(dir, `${PRIOR_ENTRY}## 2026-02-02 — second task
+- **Learning:** Two.
+- **Recurs:** 2026-01-01 — first task
+`);
+  assert.throws(() => run(dir, '--check', dir), /must promote/);
+});
+
+test('check: promotion pointer to a missing file fails', () => {
+  const dir = tmp();
+  projectWithLog(dir, `## 2026-02-02 — second task
+- **Learning:** Two.
+- **Promoted:** nowhere.md — some phrase
+`);
+  assert.throws(() => run(dir, '--check', dir), /target not found/);
+});
+
+test('check: promotion pointer to a file lacking the phrase fails', () => {
+  const dir = tmp();
+  projectWithLog(dir, `## 2026-02-02 — second task
+- **Learning:** Two.
+- **Promoted:** notes.md — a phrase that was never written
+`);
+  fs.writeFileSync(path.join(dir, 'notes.md'), 'Unrelated content.\n');
+  assert.throws(() => run(dir, '--check', dir), /lacks/);
+});
+
+test('check: recurrence to a date with no prior entry fails', () => {
+  const dir = tmp();
+  projectWithLog(dir, `${PRIOR_ENTRY}## 2026-02-02 — second task
+- **Learning:** Two.
+- **Recurs:** 2025-12-31 — imaginery task
+- **Promoted:** notes.md — A recurring lesson must graduate.
+`);
+  fs.writeFileSync(path.join(dir, 'notes.md'), 'A recurring lesson must graduate.\n');
+  assert.throws(() => run(dir, '--check', dir), /no prior entry/);
+});
+
+test('check: passes on valid project and fails on unbalanced markers or missing AGENTS.md', () => {
+  const dir = tmp();
+  // Missing AGENTS.md should fail check
+  assert.throws(() => run(dir, '--check', dir), /Gate: file-existence/);
+
+  // Install makes it valid
+  run(dir, '--project');
+  const res = run(dir, '--check', dir);
+  assert.ok(res.includes('All gates verified'));
+
+  // Corrupt marker should fail check
+  fs.appendFileSync(path.join(dir, 'AGENTS.md'), '\n<!-- VER v2.0.0 — begin -->\nBroken marker\n');
+  assert.throws(() => run(dir, '--check', dir), /unbalanced VER markers/);
 });
