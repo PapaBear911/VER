@@ -100,6 +100,7 @@ Run it in this session. Show the command and observed output.
 - A test written but not executed is a hypothesis, not a test.
 - A test that has never failed proves nothing — its assertion may be wrong.
 - If you cannot run it, say why. Reading is not running.
+- Files written via a shell (here-strings, `-Encoding utf8`, redirects) can gain a BOM or mojibake. After any shell write, verify the bytes — no U+FEFF at the start, no U+FFFD — before treating the file as evidence. Prefer an editor that writes clean UTF-8.
 
 ### TDD inner loop
 

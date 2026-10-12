@@ -22,6 +22,8 @@ by drift.
 14. Installation appends; it never replaces existing agent config. In v2.0.0, this is enforced by
    the installer CLI (`bin/ver.js`), not by convention alone.
 15. Author attribution is Ver Sangil.
+16. A recurring lesson must graduate to enforcement. An entry marking recurrence without
+   promotion fails Gate 3.
 
 ## On being overridden
 

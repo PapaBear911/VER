@@ -8,19 +8,89 @@ V.E.R. (**V**isualize → **E**ngineer → **R**elease) is an always-on agent ru
 
 ## Quickstart
 
-Install the full rule set into your repository:
+Install the full rule set into your repository in one command:
 
 ```bash
 npx @papabear911/ver --project
+```
+
+Confirm it worked — this prints a file-by-file log, then exits `0`:
+
+```bash
+npx @papabear911/ver --check .
+# ✔ Gate: contracts — all 6 gate definitions present
+# ✔ Gate: file-existence — AGENTS.md present and readable
+# ✔ Gate: receipt-log — no vision-log.md (skipped)
+# ✔ Gate: deploy-aware — markers balanced and intact
+# All configured static checks passed.
 ```
 
 Three installation targets are available:
 
 | Target | Command | Result |
 |---|---|---|
-| **Project** | `npx @papabear911/ver --project [dir]` | Places `AGENTS.md` and rule directories (`profiles/`, `phases/`, `refine/`, `references/`) |
+| **Project** | `npx @papabear911/ver --project [dir]` | Places `AGENTS.md` and rule directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`) |
 | **User-global** | `npx @papabear911/ver --global` | Installs to `~/.claude/ver/` with an `@ver/AGENTS.md` import |
 | **Agent config** | `npx @papabear911/ver --agent <name>` | Updates configuration for `claude`, `cursor`, or `gemini` |
+
+### Install with an AI agent (copy-paste)
+
+Already use a coding agent (Claude Code, Cursor, Gemini CLI)? Paste one of these prompts and let it run the install. Each uses only the published commands above.
+
+**Per project, via npm:**
+
+```text
+Install the V.E.R. agent rule set into this project using the published npm package. Run:
+  npx @papabear911/ver --project
+Then verify by running:
+  npx @papabear911/ver --check .
+Report the exact command output. --project creates the rule directories (profiles/, phases/, refine/, references/, ver-gates/); it skips any file that already exists and never overwrites your rules. If AGENTS.md already exists, confirm your content is preserved with a marked VER block prepended.
+```
+
+**User-global, via npm:**
+
+```text
+Install the V.E.R. agent rule set globally using the published npm package. Run:
+  npx @papabear911/ver --global
+This installs to ~/.claude/ver/ and adds an @ver/AGENTS.md import to ~/.claude/CLAUDE.md. Verify by running:
+  npx @papabear911/ver --check ~/.claude/ver
+Report the exact command output. --global writes only into ~/.claude/ver/ and adds an @ver/AGENTS.md import to ~/.claude/CLAUDE.md; it does not touch your project files.
+```
+
+**Via GitHub (no npm):**
+
+```text
+Install the V.E.R. agent rule set from GitHub without npm. Run:
+  git clone https://github.com/PapaBear911/VER.git /tmp/ver-src
+  cp /tmp/ver-src/AGENTS.md .
+  cp -r /tmp/ver-src/profiles /tmp/ver-src/phases /tmp/ver-src/refine /tmp/ver-src/references /tmp/ver-src/ver-gates .
+Do not overwrite any file that already exists — if any target already exists, stop and report before copying. Report exactly which files were created.
+```
+
+Core-rule-only curl path and full multi-agent options: [`INSTALL.md`](INSTALL.md).
+
+### Try it on a real task
+
+Ask your agent for a small change and watch the gates hold the line. This is the shape of one turn:
+
+```text
+You:   add a password reset flow
+
+Agent (Visualize): Outcome = unknown email returns 202, never 500; verified by the auth suite.
+       Profiles loaded: security, ux, programming. Threat model attached.
+       Smallest plan: POST /password-reset returns a neutral response for every address.
+       Proceed?                         <-- HARD GATE 1 waits for your "go"
+
+You:   go
+
+Agent (Engineer): Read auth routes + mail helper first. Implement. Run the auth suite.
+       ✔ 14 passed  (output shown)      <-- HARD GATE 2 needs executed output, not a claim
+
+Agent (Release): Rollback: revert this commit. vision-log.md: one learning logged.
+                                        <-- HARD GATE 3
+```
+
+A greeting or a pure question ("what is the VER loop?") skips all of this — VER answers directly and loads nothing. Full worked example with code and a threat model: [`examples/walkthrough.md`](examples/walkthrough.md).
 
 ### The Golden Rule: Append, Never Replace
 

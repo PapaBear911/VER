@@ -87,10 +87,25 @@ The rollback line is **mandatory**. Every release note must say how to undo it.
 ```markdown
 ## YYYY-MM-DD — [task name]
 - **Learning:** (one sentence)
+- **Recurs:** YYYY-MM-DD — [prior task name] (optional; requires `Promoted:`)
+- **Promoted:** [path] — [exact phrase added to the target] (optional)
 - **Next V seed:** (one sentence, optional)
 ```
 
 The learning must be about this work. The optional seed feeds the next Visualize.
+
+### Lesson graduation
+
+Strike 1 logs the lesson only. Strike 2 writes `Recurs:` pointing to the prior entry plus
+`Promoted:` naming the target path and the exact phrase added to it; an ungraduated recurrence
+fails Gate 3. If the same lesson reaches a third occurrence, the promotion did not hold: escalate
+per the invariant-override protocol in `INVARIANTS.md`.
+
+| Lesson type | Promotion target |
+|---|---|
+| Architectural | `INVARIANTS.md` and `DECISIONS.md` |
+| Mechanically checkable | `ver-gates/` and `bin/ver.js` |
+| Domain trap | `profiles/` |
 
 ## Profile gates
 

@@ -140,3 +140,25 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
 - **Supersedes:** "2026-10-10 — AGENTS.md delivery", whose rejection of a CLI applied to the 1.x
   stability line. That rejection is now itself superseded, by deliberate act, in this entry — not
   by drift.
+
+## 2026-10-11 — Recurring lessons must graduate (invariant #16)
+
+- **Decision:** Add `Recurs:` and `Promoted:` tags to the `vision-log.md` entry format. A latest
+  entry carrying `Recurs:` must also carry `Promoted:` resolving to a file that contains the
+  quoted phrase. `ver --check` enforces the pointer; invariant #16 records the rule.
+- **Rationale:** Logging a lesson twice without promoting it is how a loop stops compounding.
+  Detecting recurrence stays agent judgment — wording varies and fuzzy matching would fire on
+  unrelated entries — so the gate enforces the consequence once the agent commits to the judgment
+  by writing the tag. The pointer asserts the artifact, not its address: existence alone would
+  pass on a path typed but never written.
+- **Rejected alternatives:** Fuzzy/similarity detection of recurring lessons (false positives);
+  existence-only pointer checks (the lie this replaces); a seventh gate directory (the receipt-log
+  gate already owns `vision-log.md`); scanning all history on every check (a later edit to a
+  promoted rule would retroactively break old pointers); runtime or hook enforcement (invariant #8
+  and the no-runtime promise).
+- **Distinct from:** "2026-10-10 — Two-strike gate failure". That rule counts *gate failures*
+  within one task and stops after two. This rule counts *lesson recurrences* across releases and
+  escalates after two. Different counters, different failure modes.
+- **Rollback plan:** To undo: remove the `Recurs:`/`Promoted:` block from the `receipt-log`
+  section of `bin/ver.js`, revert the format block in `AGENTS.md`, and delete this entry's
+  invariant #16.
