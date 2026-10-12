@@ -31,7 +31,7 @@ Three ways VER joins an existing file, in order of preference:
 ## 2. The Quick Install (Universal)
 
 One command installs the full rule set — `AGENTS.md` plus `profiles/`, `phases/`, `refine/`,
-and `references/` — with no clone and no manual copying:
+`references/`, and `ver-gates/` — with no clone and no manual copying:
 
 ```bash
 npx @papabear911/ver --project
@@ -52,9 +52,11 @@ npm install -g @papabear911/ver && ver --project
 npm install -D @papabear911/ver && npx ver --project
 ```
 
-**If `AGENTS.md` already existed, read § 4 before continuing.** The installer never overwrites
-it — your file keeps its content, and VER's rule is written to `ver/AGENTS.md` with a one-line
-pointer added at the top of yours.
+- **If no `AGENTS.md` exists:** VER copies its full `AGENTS.md` directly into the project root,
+  along with `profiles/`, `phases/`, `refine/`, `references/`, and `ver-gates/`.
+- **If `AGENTS.md` already existed:** read § 4. The installer never overwrites it — your file keeps
+  its content intact, VER's rule is written to `ver/AGENTS.md`, and a marked block pointer is
+  prepended to your existing file.
 
 ### Curl-only (still supported)
 
@@ -71,7 +73,7 @@ For the full reference set by hand:
 ```bash
 git clone https://github.com/PapaBear911/VER.git /tmp/ver-src
 cp /tmp/ver-src/AGENTS.md .
-cp -r /tmp/ver-src/profiles /tmp/ver-src/phases /tmp/ver-src/refine /tmp/ver-src/references .
+cp -r /tmp/ver-src/profiles /tmp/ver-src/phases /tmp/ver-src/refine /tmp/ver-src/references /tmp/ver-src/ver-gates .
 ```
 
 ---
@@ -158,9 +160,9 @@ When your agent has its own config file and no import mechanism, the installer a
 block at the **top** of the existing file, above your existing content:
 
 ```markdown
-<!-- VER v2.0.0 — begin -->
+<!-- VER v2.1.1 — begin -->
 Read AGENTS.md at the repo root. Apply the VER loop to every task.
-<!-- VER v2.0.0 — end -->
+<!-- VER v2.1.1 — end -->
 ```
 
 The marker makes repeat installs idempotent — running the installer again does not duplicate the
@@ -172,8 +174,15 @@ To update the version later, replace only the text between the markers. Everythi
 is not yours to touch.
 
 **If you already have an `AGENTS.md`**, the installer leaves it exactly as it is and writes VER's
-rule to `ver/AGENTS.md` instead, adding a single pointer line to the top of yours. Your file
-keeps its content verbatim; the rule is one line away.
+rule to `ver/AGENTS.md` instead, prepending a marked block pointer to the top of yours:
+
+```markdown
+<!-- VER v2.1.1 — begin -->
+Read ver/AGENTS.md. Apply the VER loop to every task.
+<!-- VER v2.1.1 — end -->
+```
+
+Your file keeps its content verbatim; the rule is cleanly referenced without collision.
 
 ---
 
@@ -198,6 +207,18 @@ Developer Mode — which is why the import is the default recommendation everywh
 
 ## 6. Verify
 
+### CLI Audit
+
+Run the built-in checker to verify all 6 gates, contracts, manifest files, and marker integrity:
+
+```bash
+ver --check           # Audit current project directory
+ver --check [dir]     # Audit target directory
+npx @papabear911/ver --check
+```
+
+### Conversational Verification
+
 Open a new agent session in any tool, in a repository containing `AGENTS.md`. Ask:
 
 ```text
@@ -220,7 +241,43 @@ I already have an AGENTS.md. What does VER do?
 
 ---
 
-## 7. Uninstall
+## 7. Update / Upgrade
+
+Because the installer adheres to **Append. Never replace**, existing files and user modifications
+are skipped (`skipped`). Running `ver --project` over an existing install will not overwrite rules.
+
+### Upgrading the CLI
+
+```bash
+npm install -g @papabear911/ver@latest   # if installed globally
+npm install -D @papabear911/ver@latest   # if installed in project
+```
+
+### Refreshing Rules
+
+To cleanly upgrade an existing installation to a newer release:
+
+1. **Automatic (recommended):** Use `ver --uninstall` to remove unmodified recorded files, then
+   re-run the installer:
+
+   ```bash
+   # In project repo
+   ver --uninstall
+   npx @papabear911/ver@latest --project
+
+   # In user global (~/.claude/ver)
+   ver --uninstall --global
+   npx @papabear911/ver@latest --global
+   ```
+
+2. **Manual:** If you customized rules directly or use git clone:
+   - Update rule directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`).
+   - In any config file with marked blocks, update the version number and text between
+     `<!-- VER v... — begin -->` and `<!-- VER v... — end -->`.
+
+---
+
+## 8. Uninstall
 
 **Removing the CLI** (it wrote nothing — it only placed files):
 
@@ -244,14 +301,14 @@ Or manually, in the reverse order they were installed:
 3. Remove `ver/AGENTS.md` if the installer created it because you already had an `AGENTS.md`.
 4. Remove the root `AGENTS.md` **only if the installer created it** — if you wrote it yourself,
    keep it.
-5. Remove `profiles/`, `phases/`, `refine/`, and `references/`.
+5. Remove `profiles/`, `phases/`, `refine/`, `references/`, and `ver-gates/`.
 
 **Do not delete any file content that existed before VER was installed.** Uninstall removes VER
 and nothing else — if you cannot tell which lines were yours, you installed it wrong.
 
 ---
 
-## 8. What VER never does
+## 9. What VER never does
 
 - Never deletes an existing agent config file.
 - Never overwrites existing content in one.

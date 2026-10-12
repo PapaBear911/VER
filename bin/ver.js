@@ -3,15 +3,44 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 
 const pkg = require('../package.json');
 const SRC = path.join(__dirname, '..');
 const RULE_DIRS = ['profiles', 'phases', 'refine', 'references', 'ver-gates'];
 const MARK = '<!-- VER ';
+const MANIFEST_REL = path.join('.ver', 'ver-manifest.json');
 const BLOCK = (body) =>
   `${MARK}v${pkg.version} — begin -->\n${body}\n${MARK}v${pkg.version} — end -->`;
 
 const log = (file, action) => console.log(`${action.padEnd(8)} ${file}`);
+const sha = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
+
+// Ownership tracker for a single install run. Uninstall deletes or restores a file
+// only if (a) this run created/modified it and (b) its bytes are still the recorded ones.
+let tracking = null;
+function beginTrack(dir) {
+  tracking = { dir, files: {} };
+  return dir;
+}
+function relOf(file) {
+  if (!tracking) return null;
+  const rel = path.relative(tracking.dir, file);
+  return rel && !rel.startsWith('..') && !path.isAbsolute(rel) ? rel : null;
+}
+function trackBefore(file) {
+  if (!tracking) return;
+  const rel = relOf(file);
+  if (!rel) return;
+  if (!tracking.files[rel]) tracking.files[rel] = { orig: fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null, hash: null };
+}
+function trackAfter(file) {
+  if (!tracking) return;
+  const rel = relOf(file);
+  if (!rel) return;
+  if (!tracking.files[rel]) tracking.files[rel] = { orig: fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null, hash: null };
+  tracking.files[rel].hash = sha(fs.readFileSync(file));
+}
 
 // Copy only absent paths; existing rules and user edits are never replaced.
 function copyMissing(source, dest) {
@@ -26,7 +55,9 @@ function copyMissing(source, dest) {
   }
   if (fs.existsSync(dest)) return log(dest, 'skipped');
   fs.mkdirSync(path.dirname(dest), { recursive: true });
+  trackBefore(dest);
   fs.copyFileSync(source, dest);
+  trackAfter(dest);
   log(dest, 'created');
 }
 
@@ -34,56 +65,79 @@ function copyRules(dest) {
   for (const dir of RULE_DIRS) copyMissing(path.join(SRC, dir), path.join(dest, dir));
 }
 
-function removeMatching(source, target) {
-  if (!fs.existsSync(target)) return;
-  const stat = fs.statSync(target);
-  if (stat.isDirectory()) {
-    if (!fs.existsSync(source) || !fs.statSync(source).isDirectory()) return;
-    for (const entry of fs.readdirSync(target)) {
-      removeMatching(path.join(source, entry), path.join(target, entry));
-    }
-    try { fs.rmdirSync(target); log(target, 'removed'); } catch {}
+function loadManifest(dir) {
+  const mf = path.join(dir, MANIFEST_REL);
+  if (!fs.existsSync(mf)) return null;
+  try {
+    const m = JSON.parse(fs.readFileSync(mf, 'utf8'));
+    if (m && m.version === 1 && m.files && typeof m.files === 'object' && !Array.isArray(m.files)) return m;
+  } catch {}
+  return null;
+}
+
+function endTrack(dir) {
+  const mf = path.join(dir, MANIFEST_REL);
+  // A manifest that exists but does not parse is a user file — never clobber it.
+  if (fs.existsSync(mf) && !loadManifest(dir)) {
+    tracking = null;
+    return log(mf, 'skipped');
+  }
+  const prev = loadManifest(dir) || { version: 1, files: {} };
+  for (const [rel, rec] of Object.entries(tracking.files)) {
+    if (rec.hash) prev.files[rel] = rec; // a recorded write replaces any earlier record
+  }
+  fs.mkdirSync(path.dirname(mf), { recursive: true });
+  fs.writeFileSync(mf, JSON.stringify(prev, null, 2) + '\n');
+  log(mf, 'updated');
+  tracking = null;
+}
+
+function uninstallRecorded(dir) {
+  const manifest = loadManifest(dir);
+  if (!manifest) {
+    console.log('No VER install manifest found; nothing removed. See INSTALL.md §7 for manual cleanup.');
     return;
   }
-  if (!fs.existsSync(source)) return;
-  if (fs.readFileSync(source).equals(fs.readFileSync(target))) {
-    fs.unlinkSync(target);
-    log(target, 'removed');
+  for (const [rel, rec] of Object.entries(manifest.files)) {
+    if (rel.startsWith('..') || path.isAbsolute(rel)) continue;
+    const file = path.join(dir, rel);
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
+    if (rec.hash !== sha(fs.readFileSync(file))) {
+      log(file, 'kept (modified)');
+      continue;
+    }
+    if (rec.orig !== null) {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, rec.orig);
+      if (!rec.orig) fs.unlinkSync(file);
+      log(file, 'restored');
+    } else {
+      fs.unlinkSync(file);
+      log(file, 'removed');
+    }
   }
-}
-
-function removeRules(dest) {
-  for (const dir of RULE_DIRS) removeMatching(path.join(SRC, dir), path.join(dest, dir));
-}
-
-function stripBlock(file) {
-  if (!fs.existsSync(file)) return;
-  const prev = fs.readFileSync(file, 'utf8');
-  if (!prev.includes(MARK)) return;
-  const next = prev.replace(new RegExp(`\\n*${MARK}[\\s\\S]*?${MARK}[^\\n]*— end -->\\n*`, 'g'), '').trim();
-  if (!next) {
-    fs.unlinkSync(file);
-    return log(file, 'removed');
+  const mf = path.join(dir, MANIFEST_REL);
+  if (fs.existsSync(mf) && fs.statSync(mf).isFile()) fs.unlinkSync(mf);
+  // Prune empty dirs the manifest created or held, deepest first.
+  // Collect every ancestor of each recorded file (so `.cursor`, `.ver`, `profiles`… all close),
+  // plus the manifest's own `.ver` parent. rmdir fails silently on non-empty.
+  const dirs = new Set();
+  for (const rel of Object.keys(manifest.files)) {
+    let d = path.dirname(rel);
+    while (d && d !== '.') { dirs.add(path.join(dir, d)); d = path.dirname(d); }
   }
-  write(file, next + '\n', 'stripped');
-}
-
-function stripImport(file, importLines) {
-  if (!fs.existsSync(file)) return;
-  const lines = fs.readFileSync(file, 'utf8').split('\n');
-  const filtered = lines.filter((l) => !importLines.includes(l.trim()));
-  const next = filtered.join('\n').trim();
-  if (!next) {
-    fs.unlinkSync(file);
-    return log(file, 'removed');
+  dirs.add(path.join(dir, '.ver'));
+  for (const d of [...dirs].sort((a, b) => b.length - a.length)) {
+    try { fs.rmdirSync(d); } catch {}
   }
-  write(file, next + '\n', 'stripped');
 }
 
 // ponytail: sync read-modify-write, single process — add locking only if concurrent installs appear
 function write(file, next, action) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
+  trackBefore(file);
   fs.writeFileSync(file, next);
+  trackAfter(file);
   log(file, action);
 }
 
@@ -102,22 +156,19 @@ function prependImport(file, line) {
 }
 
 /** Cursor reads `.mdc` only when YAML frontmatter is present. */
+const cursorFront = (rulePath) =>
+  ['---', 'description: V.E.R. Loop — Visualize, Engineer, Release', 'alwaysApply: true', '---', '',
+    `Read ${rulePath} at the repo root. Apply the VER loop to every task.`, ''].join('\n');
+
 function cursorRule(file, rulePath) {
   const prev = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
   if (prev.includes('alwaysApply: true')) return log(file, 'skipped');
-  const front = [
-    '---',
-    'description: V.E.R. Loop — Visualize, Engineer, Release',
-    'alwaysApply: true',
-    '---',
-    '',
-    `Read ${rulePath} at the repo root. Apply the VER loop to every task.`,
-    '',
-  ].join('\n');
+  const front = cursorFront(rulePath);
   write(file, prev ? `${front}\n${prev}` : front, prev ? 'appended' : 'created');
 }
 
 function installProject(dir) {
+  beginTrack(dir);
   fs.mkdirSync(dir, { recursive: true });
   copyRules(dir);
 
@@ -125,11 +176,13 @@ function installProject(dir) {
   const root = path.join(dir, 'AGENTS.md');
   if (!fs.existsSync(root)) {
     copyMissing(source, root);
+    endTrack(dir);
     return 'AGENTS.md';
   }
   const existing = fs.readFileSync(root);
   if (existing.equals(fs.readFileSync(source)) || existing.toString('utf8').includes(MARK)) {
     log(root, 'skipped');
+    endTrack(dir);
     return 'AGENTS.md';
   }
 
@@ -137,66 +190,45 @@ function installProject(dir) {
   const rule = path.join(dir, 'ver', 'AGENTS.md');
   copyMissing(source, rule);
   prependBlock(root, 'Read ver/AGENTS.md. Apply the VER loop to every task.');
+  endTrack(dir);
   return 'ver/AGENTS.md';
 }
 
 function installGlobal() {
   const claude = path.join(os.homedir(), '.claude');
   const dest = path.join(claude, 'ver');
+  beginTrack(dest);
   fs.mkdirSync(dest, { recursive: true });
   copyMissing(path.join(SRC, 'AGENTS.md'), path.join(dest, 'AGENTS.md'));
   copyRules(dest);
+  endTrack(dest);
+  beginTrack(claude);
   prependImport(path.join(claude, 'CLAUDE.md'), '@ver/AGENTS.md');
+  endTrack(claude);
 }
 
 function installAgent(name, dir) {
   const rulePath = installProject(dir);
   const importPath = `@${rulePath}`;
-  if (name === 'claude') return prependImport(path.join(dir, 'CLAUDE.md'), importPath);
-  if (name === 'gemini') return prependImport(path.join(dir, 'GEMINI.md'), importPath);
-  return cursorRule(path.join(dir, '.cursor', 'rules', 'ver.mdc'), rulePath);
+  beginTrack(dir);
+  let result;
+  if (name === 'claude') result = prependImport(path.join(dir, 'CLAUDE.md'), importPath);
+  else if (name === 'gemini') result = prependImport(path.join(dir, 'GEMINI.md'), importPath);
+  else result = cursorRule(path.join(dir, '.cursor', 'rules', 'ver.mdc'), rulePath);
+  endTrack(dir);
+  return result;
 }
 
 function uninstallProject(dir) {
-  const source = path.join(SRC, 'AGENTS.md');
-  const root = path.join(dir, 'AGENTS.md');
-  if (fs.existsSync(root)) {
-    if (fs.readFileSync(root).equals(fs.readFileSync(source))) {
-      fs.unlinkSync(root);
-      log(root, 'removed');
-    } else {
-      stripBlock(root);
-    }
-  }
-
-  const verAgent = path.join(dir, 'ver', 'AGENTS.md');
-  if (fs.existsSync(verAgent)) {
-    fs.unlinkSync(verAgent);
-    log(verAgent, 'removed');
-    try { fs.rmdirSync(path.join(dir, 'ver')); } catch {}
-  }
-
-  const cursorFile = path.join(dir, '.cursor', 'rules', 'ver.mdc');
-  if (fs.existsSync(cursorFile)) {
-    fs.unlinkSync(cursorFile);
-    log(cursorFile, 'removed');
-    try { fs.rmdirSync(path.join(dir, '.cursor', 'rules')); } catch {}
-    try { fs.rmdirSync(path.join(dir, '.cursor')); } catch {}
-  }
-
-  stripImport(path.join(dir, 'CLAUDE.md'), ['@AGENTS.md', '@ver/AGENTS.md']);
-  stripImport(path.join(dir, 'GEMINI.md'), ['@AGENTS.md', '@ver/AGENTS.md']);
-  removeRules(dir);
+  uninstallRecorded(dir);
 }
 
 function uninstallGlobal() {
   const claude = path.join(os.homedir(), '.claude');
   const dest = path.join(claude, 'ver');
-  if (fs.existsSync(dest)) {
-    fs.rmSync(dest, { recursive: true, force: true });
-    log(dest, 'removed');
-  }
-  stripImport(path.join(claude, 'CLAUDE.md'), ['@ver/AGENTS.md']);
+  uninstallRecorded(claude);
+  uninstallRecorded(dest);
+  try { fs.rmdirSync(dest); } catch {}
 }
 
 const GATES = [
@@ -295,7 +327,8 @@ function checkGates(dir) {
     process.exitCode = 1;
     return false;
   }
-  console.log('All gates verified.');
+  console.log('All configured static checks passed.');
+  console.log('Session evidence (approvals, executed tests) is verified by the agent, not this audit.');
   return true;
 }
 

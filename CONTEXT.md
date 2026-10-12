@@ -10,7 +10,7 @@ The tagline is frozen. It is the constitution, not decoration: every rule, gate,
 
 ## Facts
 
-- **Version:** 2.0.0 — the npm + installer-CLI release
+- **Version:** 2.1.1 — the npm + installer-CLI release
 - **Author:** Ver Sangil
 - **License:** MIT
 - **Root file:** `AGENTS.md` — universal rule; delivered via `@papabear911/ver` with `ver` installer CLI. Still no daemon or inference-time runtime.
@@ -23,9 +23,11 @@ The tagline is frozen. It is the constitution, not decoration: every rule, gate,
 
 ## What counts as a task
 
-- **Code, configuration, schema, or dependency changes run the loop.** Route the task, complete loaded profile gates, and pass all three phase gates.
-- **Pure questions are answered directly.** No phases, gates, or log entry.
-- **Documentation changes** run the loop with the `docs` profile; a simple factual answer does not.
+- **File changes** (code, config, schema, docs, rules) run the loop. Docs use the `docs` profile.
+- **Questions** get answered directly. No loop, no gate, no log.
+- **Reviews** get a verdict. Fixes required by the verdict become a separate task.
+- **Packaging** (commit message, PR description, release note) is derived from existing work; it does not restart the loop.
+- **Unclear** requests get one clarifying question — never a silent default.
 
 ## User approval
 

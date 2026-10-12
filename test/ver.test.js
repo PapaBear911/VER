@@ -119,6 +119,19 @@ test('uninstall: removes rules and created AGENTS.md in clean dir', () => {
   assert.strictEqual(fs.existsSync(path.join(dir, 'profiles')), false, 'profiles should be removed');
 });
 
+test('uninstall preserves pre-existing VER-path files and post-install edits', () => {
+  const dir = tmp();
+  fs.mkdirSync(path.join(dir, 'ver'), { recursive: true });
+  const ownedLookingFile = path.join(dir, 'ver', 'AGENTS.md');
+  fs.writeFileSync(ownedLookingFile, 'User-owned VER instructions.\n');
+  run(dir, '--project');
+  const editedRule = path.join(dir, 'profiles', 'programming.md');
+  fs.appendFileSync(editedRule, '\nUser customization.\n');
+  run(dir, '--uninstall', '--project', dir);
+  assert.strictEqual(fs.readFileSync(ownedLookingFile, 'utf8'), 'User-owned VER instructions.\n');
+  assert.ok(fs.readFileSync(editedRule, 'utf8').includes('User customization.'));
+});
+
 test('uninstall: strips marked block and preserves user AGENTS.md and ver/AGENTS.md cleaned', () => {
   const dir = tmp();
   fs.writeFileSync(path.join(dir, 'AGENTS.md'), USER_RULE);
@@ -149,6 +162,9 @@ test('global install and uninstall', () => {
   runEnv(fakeHome, env, '--global');
   assert.ok(fs.existsSync(path.join(fakeHome, '.claude', 'ver', 'AGENTS.md')));
   assert.ok(fs.readFileSync(path.join(fakeHome, '.claude', 'CLAUDE.md'), 'utf8').includes('@ver/AGENTS.md'));
+  for (const d of ['profiles', 'phases', 'refine', 'references', 'ver-gates']) {
+    assert.ok(fs.existsSync(path.join(fakeHome, '.claude', 'ver', d)), `global ${d} missing`);
+  }
   runEnv(fakeHome, env, '--uninstall', '--global');
   assert.strictEqual(fs.existsSync(path.join(fakeHome, '.claude', 'ver')), false, 'global ver dir should be removed');
   assert.strictEqual(fs.existsSync(path.join(fakeHome, '.claude', 'CLAUDE.md')), false, 'empty CLAUDE.md should be removed');
@@ -169,13 +185,13 @@ test('check: tagged recurrence with resolving, phrase-bearing pointer passes', (
 - **Promoted:** notes.md — A recurring lesson must graduate.
 `);
   fs.writeFileSync(path.join(dir, 'notes.md'), 'A recurring lesson must graduate.\n');
-  assert.ok(run(dir, '--check', dir).includes('All gates verified'));
+  assert.ok(run(dir, '--check', dir).includes('All configured static checks passed'));
 
   // Backward compatible: an untagged latest entry still passes.
   fs.writeFileSync(path.join(dir, 'vision-log.md'), `${PRIOR_ENTRY}## 2026-02-03 — third task
 - **Learning:** Three.
 `);
-  assert.ok(run(dir, '--check', dir).includes('All gates verified'));
+  assert.ok(run(dir, '--check', dir).includes('All configured static checks passed'));
 });
 
 test('check: recurrence without promotion fails', () => {
@@ -225,9 +241,30 @@ test('check: passes on valid project and fails on unbalanced markers or missing 
   // Install makes it valid
   run(dir, '--project');
   const res = run(dir, '--check', dir);
-  assert.ok(res.includes('All gates verified'));
+  assert.ok(res.includes('All configured static checks passed'));
 
   // Corrupt marker should fail check
   fs.appendFileSync(path.join(dir, 'AGENTS.md'), '\n<!-- VER v2.0.0 — begin -->\nBroken marker\n');
   assert.throws(() => run(dir, '--check', dir), /unbalanced VER markers/);
 });
+
+const ROOT = path.join(__dirname, '..');
+const AGENTS = fs.readFileSync(path.join(ROOT, 'AGENTS.md'), 'utf8');
+
+test('router: AGENTS.md stays a lean router, not the re-inlined monolith', () => {
+  const lines = AGENTS.split('\n').length;
+  assert.ok(lines < 110, `AGENTS.md is ${lines} lines — the router re-bloated; push detail back into phases/references`);
+  assert.ok(AGENTS.includes('engage the loop'), 'entry engage-rule missing');
+  assert.ok(AGENTS.includes('answer directly'), 'entry answer-directly-rule missing');
+  assert.ok(/# V\.E\.R\./.test(AGENTS), 'identity header missing');
+});
+
+test('router: every rule path AGENTS.md points at exists on disk', () => {
+  const refs = AGENTS.match(/`((?:profiles|phases|refine|references|ver-gates)\/[^`]+)`/g) || [];
+  assert.ok(refs.length >= 8, `expected the router to reference the rule dirs; found ${refs.length}`);
+  for (const raw of refs) {
+    const rel = raw.replace(/`/g, '');
+    assert.ok(fs.existsSync(path.join(ROOT, rel)), `AGENTS.md points at missing path: ${rel}`);
+  }
+});
+
