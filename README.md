@@ -193,6 +193,7 @@ Optional standalone passes to inspect or polish changes at any stage:
 | **Validate** | [`refine/validate.md`](refine/validate.md) | "validate", "does this match vision?" | No silent drift or gaps accepted |
 | **Enhance** | [`refine/enhance.md`](refine/enhance.md) | "tighten it", "simplify", "delete unneeded" | Diff is minimal coherent change |
 | **Review** | [`refine/review.md`](refine/review.md) | "review the diff", "ready to ship?" | Verdict must be Ship before release |
+| **Distill** | [`refine/distill.md`](refine/distill.md) | "distill this", "make this a reference" | Extracted rules actionable, deduped, and shaped |
 
 ### Repository Verification
 Run the installer test suite:
@@ -207,12 +208,22 @@ Tests run via Node.js built-in test runner against [`test/ver.test.js`](test/ver
 
 ## References
 
+### Core Framework
 - [`AGENTS.md`](AGENTS.md) — The core constitution and loop definitions.
 - [`INSTALL.md`](INSTALL.md) — Detailed agent-specific setup and troubleshooting.
 - [`INVARIANTS.md`](INVARIANTS.md) — Project non-negotiables and governance rules.
 - [`BOOTSTRAP.md`](BOOTSTRAP.md) — Prompt snippet for session initialization.
+- [`references/ver-core.md`](references/ver-core.md) — One-page universal loop and gate reference.
+
+### Active Engineering References
 - [`references/karpathy-principles.md`](references/karpathy-principles.md) — First-principles engineering heuristics.
-- [`references/ponytail-ladder.md`](references/ponytail-ladder.md) — Seven-rung simplicity ladder and simplification guidelines.
+- [`references/ponytail-ladder.md`](references/ponytail-ladder.md) — Seven-rung simplicity ladder and ceiling annotations.
+- [`references/security-gates.md`](references/security-gates.md) — Three-tier layered security model.
+- [`references/ux-checklist.md`](references/ux-checklist.md) — Five-State Check and Human-Path verification.
+- [`references/testing-strategies.md`](references/testing-strategies.md) — Contract, boundary, and regression test rules.
+- [`references/dependencies.md`](references/dependencies.md) — Standard library and platform-first dependency criteria.
+- [`references/brownfield.md`](references/brownfield.md) — Surgical adaptation to existing codebases.
+- [`references/copy-guide.md`](references/copy-guide.md) — User-facing messaging and error state copy rules.
 
 ---
 

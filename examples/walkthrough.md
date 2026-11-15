@@ -1,6 +1,6 @@
 # Walkthrough — Add Password Reset
 
-A bounded example of VER v1.1.0 routing a sensitive change. This is illustrative pseudocode;
+A bounded example of VER v2.1.2 routing a sensitive change. This is illustrative pseudocode;
 match the actual repository's language and conventions before applying it.
 
 ---
@@ -168,10 +168,8 @@ Append to `vision-log.md` after verification:
 
 ```markdown
 ## 2026-10-10 — Password reset
-
-- **Released:** Single-use email-link reset for verified accounts.
-- **Observed:** Reset links need clear expiry and a neutral request confirmation.
-- **Next vision:** Verify session revocation behavior across every supported session type.
+- **Learning:** Reset links require atomic single-use consumption and neutral responses to prevent account enumeration.
+- **Next V seed:** Verify session revocation behavior across every supported session type.
 ```
 
 Release feeds the next vision. If any gate fails, fix once; a second failure stops the loop and

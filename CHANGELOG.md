@@ -18,11 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Guarded ancestor-directory pruning against path traversal.
 
 ### Added
+- Fourth refine pass: `refine/distill.md` for compressing external knowledge into VER-native references.
+- Universal core reference: `references/ver-core.md` summarizing the entire loop, gates, and anti-patterns.
 - GitHub Actions CI workflow (`.github/workflows/ci.yml`) testing Node 18, 20, 22 on Ubuntu and Windows.
 - Reproducible `package-lock.json` with zero dependencies.
 - Native standard library test coverage script (`npm run test:coverage`) at 97.74% line coverage.
 - Keep a Changelog documentation (`CHANGELOG.md`).
 - Six regression tests in `test/ver.test.js`.
+
+### Removed
+- Retired redundant `TRIGGERS.md` lookup table in favor of the single-source Task Router in `AGENTS.md`.
 
 ## [2.1.1] - 2026-10-12
 

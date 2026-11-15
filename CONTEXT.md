@@ -45,13 +45,14 @@ No match runs the base loop. A pure question bypasses routing.
 
 ## Refine Pass
 
-Optional, three passes, each one file:
+Optional, four passes, each one file:
 
 | Pass | File | Purpose |
 |---|---|---|
 | Validate | `refine/validate.md` | Compare built work with the approved Vision. |
 | Enhance | `refine/enhance.md` | Re-climb the Ponytail ladder; shrink the diff. |
 | Review | `refine/review.md` | Read end to end; return Ship or Loop. |
+| Distill | `refine/distill.md` | Compress external material into a VER-native reference. |
 
 ## Frozen facts
 
@@ -59,7 +60,7 @@ Optional, three passes, each one file:
 - **Acronym:** V.E.R. = Visualize → Engineer → Release.
 - **Phase names:** Visualize, Engineer, Release.
 - **Sub-step names:** Visualize / Validate / Vision; Establish / Engineering / Execution; Refinement / Rollout / Release.
-- **Refine names:** Validate, Enhance, Review.
+- **Refine names:** Validate, Enhance, Review, Distill.
 - **Router shape:** domain keyword table and `@domain` / `@domain+domain` syntax; profile additions are allowed, syntax changes are not.
 - **Always-active rules:** Karpathy principles and the 7-rung Ponytail ladder.
 - **Delivery:** npm package `@papabear911/ver` with a one-shot `ver-rules` CLI; no daemon or inference-time runtime.

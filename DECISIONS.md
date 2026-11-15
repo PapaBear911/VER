@@ -190,3 +190,16 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
 - **Rationale:** Patch release accurately reflects backward-compatible installer bugfixes, shell collision protection on Windows, and developer automation improvements without altering core rule syntax or the three-phase loop.
 - **Alternatives rejected:** v2.2.0 minor release (rejected to maintain conservative SemVer, as no breaking API or core router syntax changed).
 - **Rollback plan:** To undo: checkout v2.1.1 tag or revert this release commit.
+
+## 2026-11-15 — Fourth Refine Pass: Distill, Core Reference, and TRIGGERS.md Declutter
+
+- **Decision:** Formalize `refine/distill.md` as the fourth refine pass alongside Validate, Enhance, and Review. Add `references/ver-core.md` as the universal single-page reference for the VER loop. Retire and delete redundant `TRIGGERS.md`.
+- **Rationale:** 
+  - `distill.md` operationalizes the pattern of taking external material (articles, guides, examples) and compressing them into VER-native references with deduplication and verification gates.
+  - `ver-core.md` provides an earned, one-page reference summarizing all loop rules, hard gates, and anti-patterns for quick lookup.
+  - `TRIGGERS.md` was an early static lookup table that duplicated the Task Router in `AGENTS.md` and caused dual-source-of-truth maintenance friction.
+- **Alternatives rejected:**
+  - Keeping `TRIGGERS.md` alongside `AGENTS.md`: rejected due to redundant maintenance and inevitable drift.
+  - Leaving `distill.md` untracked or outside the formal refine pass list: rejected because Invariant #9 requires all refine-pass additions to be recorded.
+- **Amended invariants:** #9 — refine-pass names expanded to include `Distill`.
+- **Rollback plan:** To undo: remove `refine/distill.md` and `references/ver-core.md`, restore `TRIGGERS.md`, revert Invariant #9, and update `CONTEXT.md`.
