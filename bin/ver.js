@@ -7,9 +7,17 @@ const crypto = require('crypto');
 
 const pkg = require('../package.json');
 const SRC = path.join(__dirname, '..');
+const VER_SUBDIR = '.ver-rules';
 const RULE_DIRS = ['profiles', 'phases', 'refine', 'references', 'ver-gates'];
+const DOCS = ['BOOTSTRAP.md', 'CHANGELOG.md', 'CONTEXT.md', 'DECISIONS.md', 'INSTALL.md', 'INVARIANTS.md', 'README.md'];
+const BUNDLE = [
+  ...[...RULE_DIRS, 'AGENTS.md', 'examples'].map((name) => [name, name]),
+  ...DOCS.map((name) => [name, path.join('docs', name)]),
+];
+const LEGACY_RULE_DIRS = ['profiles', 'phases', 'refine', 'references', 'ver-gates'];
 const MARK_RE = /<!-- VER v\d+\.\d+\.\d+ — (?:begin|end) -->/;
-const MANIFEST_REL = path.join('.ver', 'ver-manifest.json');
+const MANIFEST_REL = path.join(VER_SUBDIR, 'ver-manifest.json');
+const LEGACY_MANIFEST_REL = path.join('.ver', 'ver-manifest.json');
 const BLOCK = (body) =>
   `<!-- VER v${pkg.version} — begin -->\n${body}\n<!-- VER v${pkg.version} — end -->`;
 
@@ -20,10 +28,21 @@ const safeChild = (dir, rel) => {
   const root = path.resolve(dir);
   const file = path.resolve(root, rel);
   const fromRoot = path.relative(root, file);
-  return fromRoot && fromRoot !== '..' && !fromRoot.startsWith(`..${path.sep}`) && !path.isAbsolute(fromRoot)
-    ? file
-    : null;
+  const contained = fromRoot && fromRoot !== '..' && !fromRoot.startsWith(`..${path.sep}`) && !path.isAbsolute(fromRoot);
+  if (!contained) return null;
+  let current = file;
+  while (current !== root) {
+    if (fs.lstatSync(current, { throwIfNoEntry: false })?.isSymbolicLink()) return null;
+    current = path.dirname(current);
+  }
+  return file;
 };
+
+function requirePlainPath(dir, file) {
+  if (!safeChild(dir, path.relative(dir, file))) {
+    throw new Error('Refusing to write through a redirected or invalid VER path: ' + file);
+  }
+}
 
 // Ownership tracker for a single install run. Uninstall deletes or restores a file
 // only if (a) this run created/modified it and (b) its bytes are still the recorded ones.
@@ -35,7 +54,7 @@ function beginTrack(dir) {
 function relOf(file) {
   if (!tracking) return null;
   const rel = path.relative(tracking.dir, file);
-  return rel && !rel.startsWith('..') && !path.isAbsolute(rel) ? rel : null;
+  return rel && !rel.startsWith('..') && !path.isAbsolute(rel) ? rel.replace(/\\/g, '/') : null;
 }
 function trackBefore(file) {
   if (!tracking) return;
@@ -53,6 +72,7 @@ function trackAfter(file) {
 
 // Copy only absent paths; existing rules and user edits are never replaced.
 function copyMissing(source, dest) {
+  requirePlainPath(tracking.dir, dest);
   const stat = fs.statSync(source);
   if (stat.isDirectory()) {
     if (fs.existsSync(dest) && !fs.statSync(dest).isDirectory()) return log(dest, 'skipped');
@@ -70,15 +90,143 @@ function copyMissing(source, dest) {
   log(dest, 'created');
 }
 
-function copyRules(dest) {
-  for (const dir of RULE_DIRS) copyMissing(path.join(SRC, dir), path.join(dest, dir));
+function updateFileOrKeep(source, dest, manifest) {
+  requirePlainPath(tracking.dir, dest);
+  const stat = fs.statSync(source);
+  if (stat.isDirectory()) {
+    if (fs.existsSync(dest) && !fs.statSync(dest).isDirectory()) return log(dest, 'skipped');
+    fs.mkdirSync(dest, { recursive: true });
+    for (const entry of fs.readdirSync(source)) {
+      updateFileOrKeep(path.join(source, entry), path.join(dest, entry), manifest);
+    }
+    return;
+  }
+  const rel = relOf(dest);
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    trackBefore(dest);
+    fs.copyFileSync(source, dest);
+    trackAfter(dest);
+    return log(dest, 'created');
+  }
+  const rec = manifest?.files?.[rel] || manifest?.files?.[rel?.replace(/\//g, '\\')];
+  if (rec && rec.hash) {
+    const currentHash = sha(fs.readFileSync(dest));
+    if (currentHash === rec.hash) {
+      if (sha(fs.readFileSync(source)) === currentHash) {
+        return log(dest, 'skipped');
+      }
+      trackBefore(dest);
+      fs.copyFileSync(source, dest);
+      trackAfter(dest);
+      return log(dest, 'updated');
+    } else {
+      return log(dest, 'kept (modified)');
+    }
+  }
+  log(dest, 'skipped');
+}
+
+function migrateLegacyVerFiles(dir) {
+  const legacyPath = safeChild(dir, LEGACY_MANIFEST_REL);
+  const manifestPath = path.join(dir, MANIFEST_REL);
+  requirePlainPath(dir, manifestPath);
+  if (!legacyPath || !fs.existsSync(legacyPath) || fs.existsSync(manifestPath)) return;
+  const manifest = loadManifest(dir);
+  if (!manifest) return;
+
+  const agents = ['CLAUDE.md', 'GEMINI.md', '.cursor/rules/ver.mdc'];
+  const keepLegacyLayout = agents.some((rel) => {
+    const file = safeChild(dir, rel);
+    if (!file || !fs.existsSync(file)) return false;
+    const text = fs.readFileSync(file, 'utf8');
+    const record = manifest.files[rel] || manifest.files[rel.replace(/\//g, '\\')];
+    return /^(Read |@)ver\/AGENTS\.md(?=\s|$)/m.test(text) && sha(Buffer.from(text)) !== record?.hash;
+  });
+
+  // Copy first so an interrupted migration leaves the legacy files intact.
+  const moved = [];
+  for (const [rel, record] of Object.entries(manifest.files)) {
+    const normalized = rel.replace(/\\/g, '/');
+    const folder = normalized.split('/')[0];
+    const rule = normalized === 'ver/AGENTS.md' ? 'AGENTS.md' : normalized;
+    if (normalized !== 'ver/AGENTS.md' && !LEGACY_RULE_DIRS.includes(folder)) continue;
+    const nextRel = VER_SUBDIR + '/' + rule;
+    const source = safeChild(dir, normalized);
+    const dest = safeChild(dir, nextRel);
+    if (!source || !dest || !fs.statSync(source, { throwIfNoEntry: false })?.isFile()) continue;
+    if (fs.existsSync(dest)) {
+      log(source, 'kept (destination exists)');
+      continue;
+    }
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.copyFileSync(source, dest, fs.constants.COPYFILE_EXCL);
+    manifest.files[nextRel] = { ...record, orig: null };
+    if (!keepLegacyLayout && record.orig === null && sha(fs.readFileSync(source)) === record.hash) {
+      delete manifest.files[rel];
+      moved.push(source);
+    }
+    log(dest, 'migrated');
+  }
+
+  fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' });
+  for (const source of moved) {
+    fs.unlinkSync(source);
+    let parent = path.dirname(source);
+    while (parent !== dir) {
+      try { fs.rmdirSync(parent); } catch { break; }
+      parent = path.dirname(parent);
+    }
+  }
+  fs.unlinkSync(legacyPath);
+  try { fs.rmdirSync(path.dirname(legacyPath)); } catch {}
+
+  if (!fs.existsSync(path.join(dir, VER_SUBDIR, 'AGENTS.md'))) return;
+  for (const rel of agents) {
+    const file = safeChild(dir, rel);
+    const record = manifest.files[rel] || manifest.files[rel.replace(/\//g, '\\')];
+    if (!file || !record || !fs.existsSync(file)) continue;
+    const previous = fs.readFileSync(file, 'utf8');
+    if (sha(Buffer.from(previous)) !== record.hash) continue;
+    const next = previous.replace(/^(Read |@)ver\/AGENTS\.md(?=\s|$)/m, '$1' + VER_SUBDIR + '/AGENTS.md');
+    if (next !== previous) write(file, next, 'updated');
+  }
+}
+
+function updateProject(dir) {
+  if (!loadManifest(dir)) return installProject(dir);
+  beginTrack(dir);
+  migrateLegacyVerFiles(dir);
+  const manifest = loadManifest(dir);
+  for (const [source, dest] of BUNDLE) {
+    updateFileOrKeep(path.join(SRC, source), path.join(dir, VER_SUBDIR, dest), manifest);
+  }
+  updateProjectPointer(dir, manifest);
+  endTrack(dir);
+}
+
+function updateProjectPointer(dir, manifest) {
+  const root = path.join(dir, 'AGENTS.md');
+  const body = 'Read ' + VER_SUBDIR + '/AGENTS.md. Apply the VER loop to every task.';
+  if (!fs.existsSync(root)) return prependBlock(root, body);
+  const previous = fs.readFileSync(root, 'utf8');
+  const record = manifest?.files['AGENTS.md'];
+  const oldBlock = /<!-- VER v\d+\.\d+\.\d+ — begin -->\r?\nRead (?:ver|\.ver-rules)\/AGENTS\.md\. Apply the VER loop to every task\.\r?\n<!-- VER v\d+\.\d+\.\d+ — end -->/;
+  const next = record?.orig === null && sha(Buffer.from(previous)) === record.hash
+    ? BLOCK(body) + '\n'
+    : previous.replace(oldBlock, BLOCK(body));
+  if (next !== previous) return write(root, next, 'updated');
+  if (!MARK_RE.test(previous)) prependBlock(root, body);
 }
 
 function loadManifest(dir) {
-  const mf = path.join(dir, MANIFEST_REL);
-  if (!fs.existsSync(mf)) return null;
+  const mf = safeChild(dir, MANIFEST_REL);
+  const legacyMf = safeChild(dir, LEGACY_MANIFEST_REL);
+  const target = mf && fs.existsSync(mf) ? mf : legacyMf;
+  if (!target) return null;
   try {
-    const m = JSON.parse(fs.readFileSync(mf, 'utf8'));
+    const m = JSON.parse(fs.readFileSync(target, 'utf8'));
     if (m && m.version === 1 && m.files && typeof m.files === 'object' && !Array.isArray(m.files)) return m;
   } catch {}
   return null;
@@ -86,6 +234,7 @@ function loadManifest(dir) {
 
 function endTrack(dir) {
   const mf = path.join(dir, MANIFEST_REL);
+  requirePlainPath(dir, mf);
   // A manifest that exists but does not parse is a user file — never clobber it.
   if (fs.existsSync(mf) && !loadManifest(dir)) {
     tracking = null;
@@ -93,7 +242,12 @@ function endTrack(dir) {
   }
   const prev = loadManifest(dir) || { version: 1, files: {} };
   for (const [rel, rec] of Object.entries(tracking.files)) {
-    if (rec.hash) prev.files[rel] = rec; // a recorded write replaces any earlier record
+    if (!rec.hash) continue;
+    const legacyKey = rel.replace(/\//g, '\\');
+    const prior = prev.files[rel] || prev.files[legacyKey];
+    if (prior && (rec.orig === null || sha(Buffer.from(rec.orig)) === prior.hash)) rec.orig = prior.orig;
+    if (legacyKey !== rel) delete prev.files[legacyKey];
+    prev.files[rel] = rec;
   }
   fs.mkdirSync(path.dirname(mf), { recursive: true });
   fs.writeFileSync(mf, JSON.stringify(prev, null, 2) + '\n');
@@ -127,24 +281,25 @@ function uninstallRecorded(dir) {
       log(file, 'removed');
     }
   }
-  const mf = path.join(root, MANIFEST_REL);
-  if (fs.existsSync(mf) && fs.statSync(mf).isFile()) fs.unlinkSync(mf);
+  const current = safeChild(root, MANIFEST_REL);
+  const consumed = current && fs.existsSync(current) ? current : safeChild(root, LEGACY_MANIFEST_REL);
+  fs.unlinkSync(consumed);
+
   // Prune empty dirs the manifest created or held, deepest first.
-  // Collect every ancestor of each recorded file (so `.cursor`, `.ver`, `profiles`… all close),
-  // plus the manifest's own `.ver` parent. rmdir fails silently on non-empty.
   const dirs = new Set();
   for (const file of prunable) {
     let d = path.dirname(file);
     while (d !== root && d !== path.dirname(d) && d.startsWith(root)) { dirs.add(d); d = path.dirname(d); }
   }
-  dirs.add(path.join(root, '.ver'));
+  dirs.add(path.dirname(consumed));
   for (const d of [...dirs].sort((a, b) => b.length - a.length)) {
     try { fs.rmdirSync(d); } catch {}
   }
 }
 
-// ponytail: sync read-modify-write, single process — add locking only if concurrent installs appear
+// ceiling: sync read-modify-write, single process — add locking only if concurrent installs appear
 function write(file, next, action) {
+  requirePlainPath(tracking.dir, file);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   trackBefore(file);
   fs.writeFileSync(file, next);
@@ -181,41 +336,50 @@ function cursorRule(file, rulePath) {
 function installProject(dir) {
   beginTrack(dir);
   fs.mkdirSync(dir, { recursive: true });
-  copyRules(dir);
+  migrateLegacyVerFiles(dir);
 
-  const source = path.join(SRC, 'AGENTS.md');
-  const root = path.join(dir, 'AGENTS.md');
-  if (!fs.existsSync(root)) {
-    copyMissing(source, root);
-    endTrack(dir);
-    return 'AGENTS.md';
+  for (const [source, dest] of BUNDLE) {
+    copyMissing(path.join(SRC, source), path.join(dir, VER_SUBDIR, dest));
   }
-  const existing = fs.readFileSync(root);
-  if (existing.equals(fs.readFileSync(source)) || MARK_RE.test(existing.toString('utf8'))) {
-    log(root, 'skipped');
-    endTrack(dir);
-    return 'AGENTS.md';
-  }
-
-  // Keep VER's full rule separately; point to it without replacing the user's file.
-  const rule = path.join(dir, 'ver', 'AGENTS.md');
-  copyMissing(source, rule);
-  prependBlock(root, 'Read ver/AGENTS.md. Apply the VER loop to every task.');
+  updateProjectPointer(dir, loadManifest(dir));
   endTrack(dir);
-  return 'ver/AGENTS.md';
+  return VER_SUBDIR + '/AGENTS.md';
 }
 
-function installGlobal() {
-  const claude = path.join(os.homedir(), '.claude');
-  const dest = path.join(claude, 'ver');
-  beginTrack(dest);
-  fs.mkdirSync(dest, { recursive: true });
-  copyMissing(path.join(SRC, 'AGENTS.md'), path.join(dest, 'AGENTS.md'));
-  copyRules(dest);
-  endTrack(dest);
-  beginTrack(claude);
-  prependImport(path.join(claude, 'CLAUDE.md'), '@ver/AGENTS.md');
-  endTrack(claude);
+function installGlobal(update = false) {
+  const home = os.homedir();
+  const target = path.join(home, VER_SUBDIR);
+  const claude = path.join(home, '.claude');
+  const legacyTarget = path.join(claude, 'ver');
+  const legacy = safeChild(home, '.claude/ver') && loadManifest(legacyTarget);
+  const manifest = loadManifest(home);
+  beginTrack(home);
+  for (const [rel, record] of Object.entries(legacy?.files || {})) {
+    const source = safeChild(legacyTarget, rel);
+    const dest = safeChild(home, VER_SUBDIR + '/' + rel.replace(/\\/g, '/'));
+    if (!source || !dest || !fs.statSync(source, { throwIfNoEntry: false })?.isFile() || fs.existsSync(dest)) continue;
+    copyMissing(source, dest);
+    if (tracking.files[relOf(dest)].hash !== record.hash) delete tracking.files[relOf(dest)];
+  }
+  for (const [from, to] of BUNDLE) {
+    const source = path.join(SRC, from);
+    const dest = path.join(target, to);
+    if (update) updateFileOrKeep(source, dest, manifest || tracking);
+    else copyMissing(source, dest);
+  }
+
+  const claudeMd = path.join(claude, 'CLAUDE.md');
+  const importLine = '@~/' + VER_SUBDIR + '/AGENTS.md';
+  requirePlainPath(home, claudeMd);
+  const oldConfig = loadManifest(claude)?.files?.['CLAUDE.md'];
+  const previous = fs.existsSync(claudeMd) ? fs.readFileSync(claudeMd, 'utf8') : '';
+  if (oldConfig && previous.startsWith('@ver/AGENTS.md\n') && sha(Buffer.from(previous)) === oldConfig.hash) {
+    write(claudeMd, importLine + previous.slice('@ver/AGENTS.md'.length), 'updated');
+    tracking.files['.claude/CLAUDE.md'].orig = oldConfig.orig;
+  } else {
+    prependImport(claudeMd, importLine);
+  }
+  endTrack(home);
 }
 
 function installAgent(name, dir) {
@@ -235,11 +399,12 @@ function uninstallProject(dir) {
 }
 
 function uninstallGlobal() {
-  const claude = path.join(os.homedir(), '.claude');
-  const dest = path.join(claude, 'ver');
-  uninstallRecorded(claude);
-  uninstallRecorded(dest);
-  try { fs.rmdirSync(dest); } catch {}
+  const home = os.homedir();
+  const claude = path.join(home, '.claude');
+  if (fs.existsSync(path.join(home, MANIFEST_REL))) uninstallRecorded(home);
+  for (const dir of [path.join(home, VER_SUBDIR), claude, path.join(claude, 'ver')]) {
+    if (safeChild(home, path.relative(home, dir)) && loadManifest(dir)) uninstallRecorded(dir);
+  }
 }
 
 const GATES = [
@@ -261,14 +426,19 @@ function checkGates(dir) {
     console.log(`✔ Gate: ${gate} — ${msg}`);
   };
 
-  const gatesDir = path.join(dir, 'ver-gates');
+  const gatesDir = [
+    path.join(dir, VER_SUBDIR, 'ver-gates'),
+    path.join(dir, 'ver-gates')
+  ].find((d) => fs.existsSync(d)) || path.join(dir, VER_SUBDIR, 'ver-gates');
+
   const missing = GATES.filter((g) => !fs.existsSync(path.join(gatesDir, g, 'GATE.md')));
   if (missing.length) fail('contracts', `missing GATE.md in ${gatesDir}: ${missing.join(', ')}`);
   else ok('contracts', 'all 6 gate definitions present');
 
   const agentsMd = path.join(dir, 'AGENTS.md');
+  const verRulesAgentsMd = path.join(dir, VER_SUBDIR, 'AGENTS.md');
   const verAgentsMd = path.join(dir, 'ver', 'AGENTS.md');
-  if (fs.existsSync(agentsMd) || fs.existsSync(verAgentsMd)) {
+  if (fs.existsSync(agentsMd) || fs.existsSync(verRulesAgentsMd) || fs.existsSync(verAgentsMd)) {
     ok('file-existence', 'AGENTS.md present and readable');
   } else {
     fail('file-existence', 'no AGENTS.md found');
@@ -297,8 +467,12 @@ function checkGates(dir) {
         }
       }
       if (promoted) {
-        // ponytail: dir-then-SRC lookup, no dedup — tighten if two roots ever ship the same filename
-        const target = [path.join(dir, promoted[1]), path.join(SRC, promoted[1])].find((f) => fs.existsSync(f));
+        // ceiling: dir-then-SRC lookup, no dedup — tighten if two roots ever ship the same filename
+        const target = [
+          path.join(dir, promoted[1]),
+          path.join(dir, VER_SUBDIR, promoted[1]),
+          path.join(SRC, promoted[1])
+        ].find((f) => fs.existsSync(f));
         if (!target) bad(`Promoted: target not found: ${promoted[1]}`);
         else if (!fs.readFileSync(target, 'utf8').includes(promoted[2])) {
           bad(`Promoted: ${promoted[1]} lacks "${promoted[2]}"`);
@@ -347,7 +521,7 @@ function installHook(dir) {
   if (!fs.existsSync(hooksDir)) fs.mkdirSync(hooksDir, { recursive: true });
   const hookFile = path.join(hooksDir, 'pre-commit');
 
-  const hookCheck = 'if command -v ver-rules >/dev/null 2>&1; then\n  ver-rules --check .\nelif [ -f "bin/ver.js" ]; then\n  node bin/ver.js --check .\nelse\n  npx @papabear911/ver ver-rules --check .\nfi';
+  const hookCheck = 'if command -v ver-rules >/dev/null 2>&1; then\n  ver-rules --check .\nelif [ -f "bin/ver.js" ]; then\n  node bin/ver.js --check .\nelse\n  npx @papabear911/ver --check .\nfi';
 
   if (fs.existsSync(hookFile)) {
     const existing = fs.readFileSync(hookFile, 'utf8');
@@ -370,8 +544,9 @@ function installHook(dir) {
 
 const HELP = `${pkg.name} ${pkg.version} — V.E.R. installer. Appends. Never replaces.
 
-  ver-rules --project [dir]     Install into a repo (default: .)
-  ver-rules --global            Install into ~/.claude/ver/ + import from ~/.claude/CLAUDE.md
+  ver-rules --project [dir]     Install into a repo in .ver-rules/ (default: .)
+  ver-rules --update [dir]      Update unmodified rules to this CLI version (--global supported)
+  ver-rules --global            Install into ~/.ver-rules/ + import from ~/.claude/CLAUDE.md
   ver-rules --agent <name>      Install rules + config touch: claude, cursor, gemini
   ver-rules --hook [dir]        Install pre-commit hook running audit before commits
   ver-rules --uninstall         Remove installed rules and imports (--project [dir] or --global)
@@ -402,6 +577,16 @@ function main(argv) {
     const dir =
       hookAt !== -1 && a[hookAt + 1] && !a[hookAt + 1].startsWith('-') ? a[hookAt + 1] : '.';
     return installHook(path.resolve(dir));
+  }
+
+  if (a.includes('--update')) {
+    if (a.includes('--global') || a.includes('-g')) {
+      return installGlobal(true);
+    }
+    const updateAt = a.indexOf('--update');
+    const dir =
+      updateAt !== -1 && a[updateAt + 1] && !a[updateAt + 1].startsWith('-') ? a[updateAt + 1] : '.';
+    return updateProject(path.resolve(dir));
   }
 
   if (a.includes('--uninstall')) {

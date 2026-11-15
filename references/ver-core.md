@@ -46,7 +46,7 @@ Clause served: **See it. Build it. Ship it. Every release feeds the next vision.
 |---|---|---|
 | User requests a feature change | Agent starts writing speculative abstractions immediately | Agent routes domain profiles, restates observable outcome, and waits for Gate 1 approval |
 | Test fails during implementation | Agent changes multiple things randomly or fabricates results | Agent tests RED first, makes surgical edit, runs real command, and stops after 2 failures |
-| Installing rules in existing repo | Tool replaces user's `AGENTS.md` or wipes configuration | Tool prepends marked idempotent block or writes `ver/AGENTS.md` pointer |
+| Installing rules in existing repo | Tool replaces user's `AGENTS.md` or wipes configuration | Tool prepends marked idempotent block or writes `.ver-rules/AGENTS.md` pointer |
 | Wrapping up a release | Agent says "done" with no way to revert or learn | Agent runs verification, documents rollback command, and logs a learning |
 
 ---

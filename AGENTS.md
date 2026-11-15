@@ -1,4 +1,4 @@
-# V.E.R. — v2.1.2
+# V.E.R. — v2.2.0
 
 > See it. Build it. Ship it. Every release feeds the next vision.
 

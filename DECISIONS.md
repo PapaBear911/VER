@@ -234,3 +234,17 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
   - Creating job-title persona profiles (CEO, HR, PM): rejected to avoid profile bloat and roleplay; V.E.R. profiles govern artifact disciplines, while institutional authorities sign off.
 - **Amended invariants:** #6 — dual truth standard (code execution for software; observed execution or authoritative records for real-world interventions); #13 — Three-Part Bounded Undo when complete reversal is unavailable.
 - **Rollback plan:** To undo: revert this entry in `DECISIONS.md`, restore Invariants #6 and #13 in `INVARIANTS.md`, revert `CONTEXT.md`, and remove `@policy` and `@research` profiles.
+
+## 2026-11-15 — Subfolder Consolidation: .ver-rules, Manifest Colocation, and Legacy Migration
+
+- **Decision:** Consolidate all V.E.R. supporting directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`, `docs/`) and the manifest (`ver-manifest.json`) into a single subfolder: `.ver-rules/` in project repositories and `~/.ver-rules/` in user global installations. Relocate `ver-manifest.json` from `.ver/` to `.ver-rules/ver-manifest.json`. Implement automated migration (`migrateLegacyVerFiles`) in `ver-rules --update` and `ver-rules --project` to detect legacy root folders (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`, `ver/`, `.ver/`), move them recursively into `.ver-rules/`, update root pointers in `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and `ver.mdc`, and prune empty legacy directories while preserving user-owned directories (e.g., project `docs/`). Add `ver-rules --update [dir]` and `ver-rules --update --global` for hash-verified rule updates that preserve user edits.
+- **Rationale:**
+  - Previously, placing five separate directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`) and `.ver/` at the repository root created unacceptable clutter in user codebases and risked naming collisions with project-specific directories (such as project documentation).
+  - Placing all V.E.R. assets under `.ver-rules/` encapsulates the framework completely in one inspectable folder.
+  - Colocating `ver-manifest.json` inside `.ver-rules/` eliminates the `.ver/` folder, ensuring exactly one directory is added.
+  - Automated migration provides seamless upgrade continuity for existing installations without manual intervention or data loss.
+- **Alternatives rejected:**
+  - Multiple top-level folders: rejected due to project root clutter.
+  - Keeping manifest in `.ver/`: rejected to avoid creating a second hidden folder alongside `.ver-rules/`.
+  - Manual migration: rejected because asking users to move files and rewrite relative paths risks breaking gates and pointers.
+- **Rollback plan:** To undo: revert changes in `bin/ver.js`, `test/ver.test.js`, and documentation.

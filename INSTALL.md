@@ -34,20 +34,22 @@ One command installs the full rule set — `AGENTS.md` plus `profiles/`, `phases
 `references/`, and `ver-gates/` — with no clone and no manual copying:
 
 ```bash
-npx @papabear911/ver ver-rules --project
+npx @papabear911/ver --project
 # On Windows, `ver` is a cmd.exe builtin that shadows PATH; the package bin is named
 # `ver-rules`. All `npx` commands above explicitly invoke `ver-rules` so they work
 # regardless of how many bins the package ships.
 ```
 
-Three install paths, one package:
+Install and maintenance commands
 
 | Path | Command | Writes to |
 |---|---|---|
-| **Project** | `npx @papabear911/ver ver-rules --project [dir]` | `dir` (default `.`) — rule dirs, plus `AGENTS.md` |
-| **Git Hook** | `npx @papabear911/ver ver-rules --hook [dir]` | `.git/hooks/pre-commit` — appends automated audit hook |
-| **User-global** | `npx @papabear911/ver ver-rules --global` | `~/.claude/ver/`, plus an `@ver/AGENTS.md` import in `~/.claude/CLAUDE.md` |
-| **Agent config** | `npx @papabear911/ver ver-rules --agent <name>` | the one config file that agent needs (see § 3) |
+| **Project** | `npx @papabear911/ver --project [dir]` | `dir/.ver-rules/` — rule dirs, docs, manifest, plus root `AGENTS.md` |
+| **Update** | `npx @papabear911/ver --update [dir]` | `dir/.ver-rules/` — migrates legacy files, updates unmodified rules |
+| **Git Hook** | `npx @papabear911/ver --hook [dir]` | `.git/hooks/pre-commit` — appends automated audit hook |
+| **User-global** | `npx @papabear911/ver --global` | `~/.ver-rules/`, plus an `@~/.ver-rules/AGENTS.md` import in `~/.claude/CLAUDE.md` |
+| **Global Update** | `npx @papabear911/ver --update --global` | `~/.ver-rules/` — updates unmodified global rules |
+| **Agent config** | `npx @papabear911/ver --agent <name>` | the one config file that agent needs (see § 3) |
 
 Prefer a permanent CLI? Either works identically:
 
@@ -56,10 +58,16 @@ npm install -g @papabear911/ver && ver-rules --project
 npm install -D @papabear911/ver && npx -p @papabear911/ver ver-rules --project
 ```
 
-- **If no `AGENTS.md` exists:** VER copies its full `AGENTS.md` directly into the project root,
-  along with `profiles/`, `phases/`, `refine/`, `references/`, and `ver-gates/`.
+- **Consolidated subfolder:** All VER supporting directories (`profiles/`, `phases/`, `refine/`,
+  `references/`, `ver-gates/`, `docs/`) and `ver-manifest.json` are installed inside a single `.ver-rules/`
+  subfolder (or `~/.ver-rules/` for global installs), preventing repo root clutter.
+- **Legacy migration:** If an older VER installation with root folders (`profiles/`, `phases/`,
+  `refine/`, `references/`, `ver-gates/`, `ver/`, `.ver/`) is present, running `--update` or `--project`
+  automatically moves them into `.ver-rules/` and updates pointers. Untracked files and conflicting destinations stay in place.
+  Customized legacy files are retained at their original paths as well.
+- **If no `AGENTS.md` exists:** VER creates `AGENTS.md` pointing to `.ver-rules/AGENTS.md`.
 - **If `AGENTS.md` already existed:** read § 4. The installer never overwrites it — your file keeps
-  its content intact, VER's rule is written to `ver/AGENTS.md`, and a marked block pointer is
+  its content intact, VER's rule is written to `.ver-rules/AGENTS.md`, and a marked block pointer is
   prepended to your existing file.
 
 ### Curl-only (still supported)
@@ -113,7 +121,7 @@ automatically.
 Cursor reads `AGENTS.md` natively at the project root.
 
 - **Nothing else to do** if you use the native rule.
-- To add an explicit Cursor rule, run `npx @papabear911/ver ver-rules --agent cursor`. It writes
+- To add an explicit Cursor rule, run `npx @papabear911/ver --agent cursor`. It writes
   `.cursor/rules/ver.mdc` with required YAML frontmatter. Existing `.mdc` content is preserved.
 - **If `.cursorrules` exists (legacy):** leave it. Cursor reads both. This file still works but
   is deprecated.
@@ -164,9 +172,9 @@ When your agent has its own config file and no import mechanism, the installer a
 block at the **top** of the existing file, above your existing content:
 
 ```markdown
-<!-- VER v2.1.2 — begin -->
+<!-- VER v2.2.0 — begin -->
 Read AGENTS.md at the repo root. Apply the VER loop to every task.
-<!-- VER v2.1.2 — end -->
+<!-- VER v2.2.0 — end -->
 ```
 
 The marker makes repeat installs idempotent — running the installer again does not duplicate the
@@ -179,12 +187,12 @@ To update the version later, replace only the text between the markers. Everythi
 is not yours to touch.
 
 **If you already have an `AGENTS.md`**, the installer leaves it exactly as it is and writes VER's
-rule to `ver/AGENTS.md` instead, prepending a marked block pointer to the top of yours:
+rule to `.ver-rules/AGENTS.md` instead, prepending a marked block pointer to the top of yours:
 
 ```markdown
-<!-- VER v2.1.2 — begin -->
-Read ver/AGENTS.md. Apply the VER loop to every task.
-<!-- VER v2.1.2 — end -->
+<!-- VER v2.2.0 — begin -->
+Read .ver-rules/AGENTS.md. Apply the VER loop to every task.
+<!-- VER v2.2.0 — end -->
 ```
 
 Your file keeps its content verbatim; the rule is cleanly referenced without collision.
@@ -219,7 +227,7 @@ Run the built-in checker to verify all 6 gates, contracts, manifest files, and m
 ```bash
 ver-rules --check           # Audit current project directory
 ver-rules --check [dir]     # Audit target directory
-npx @papabear911/ver ver-rules --check
+npx @papabear911/ver --check
 ```
 
 ### Conversational Verification
@@ -260,7 +268,7 @@ npm install -D @papabear911/ver@latest   # if installed in project
 
 ### Refreshing Rules & Coordinated Updates
 
-Because `ver-rules` enforces **Append. Never replace**, running `ver-rules --project` over an existing installation safely copies any newly released files (such as `profiles/policy.md` and `profiles/research.md`) while preserving all existing files and user modifications.
+Run `npx @papabear911/ver@latest --update` to add new rules and refresh rules whose hashes still match the recorded install. Use `npx @papabear911/ver@latest --update --global` for a global installation.
 
 For older installations where rule files are already present, updating shared base rules (`phases/`, `ver-gates/`, `references/`) requires a coordinated update path:
 
@@ -268,13 +276,13 @@ For older installations where rule files are already present, updating shared ba
    If you have not hand-modified the generated rule files, uninstall and re-install:
    ```bash
    ver-rules --uninstall
-   npx @papabear911/ver@latest ver-rules --project
+   npx @papabear911/ver@latest --project
    ```
    This uninstalls the tracked files whose hashes match the manifest, then places the latest release files. User-owned content in `AGENTS.md` and custom files remain completely untouched.
 
 2. **Selective / Custom Update:**
    If you have added custom project rules inside `phases/` or `profiles/`:
-   - Run `npx @papabear911/ver@latest ver-rules --project` to copy newly added profile files automatically.
+   - Run `npx @papabear911/ver@latest --project` to copy newly added profile files automatically.
    - Inspect upstream changes to shared guides (`phases/`, `ver-gates/`, `INVARIANTS.md`) using git diff:
      ```bash
      git diff origin/main -- phases/ ver-gates/ INVARIANTS.md
@@ -295,19 +303,18 @@ npm uninstall @papabear911/ver      # if installed as a project dependency
 **Removing the rules automatically:**
 
 ```bash
-ver-rules --uninstall                   # remove from current project
-ver-rules --uninstall --project [dir]   # remove from target project
-ver-rules --uninstall --global          # remove global install (~/.claude/ver)
+ver-rules --uninstall                   # remove from current project (.ver-rules)
+ver-rules --uninstall --project [dir]   # remove from target project (.ver-rules)
+ver-rules --uninstall --global          # remove global install (~/.ver-rules)
 ```
 
 Or manually, in the reverse order they were installed:
 
 1. Remove the marked VER block from any config file (§ 4).
-2. Remove the `@AGENTS.md` (or `@ver/AGENTS.md`) import line from `CLAUDE.md` or `GEMINI.md`.
-3. Remove `ver/AGENTS.md` if the installer created it because you already had an `AGENTS.md`.
+2. Remove the `@.ver-rules/AGENTS.md` (or `@~/.ver-rules/AGENTS.md`) import line from `CLAUDE.md` or `GEMINI.md`.
+3. Remove `.ver-rules/` and its manifest.
 4. Remove the root `AGENTS.md` **only if the installer created it** — if you wrote it yourself,
    keep it.
-5. Remove `profiles/`, `phases/`, `refine/`, `references/`, and `ver-gates/`.
 
 **Do not delete any file content that existed before VER was installed.** Uninstall removes VER
 and nothing else — if you cannot tell which lines were yours, you installed it wrong.
@@ -320,7 +327,7 @@ and nothing else — if you cannot tell which lines were yours, you installed it
 - Never overwrites existing content in one.
 - Never reorders or reformats your rules.
 - Never overwrites a file it did not create — an existing `AGENTS.md`, `CLAUDE.md`, or
-  `GEMINI.md` keeps its content, and VER's rule goes to `ver/AGENTS.md` with a one-line pointer.
+  `GEMINI.md` keeps its content, and VER's rule goes to `.ver-rules/AGENTS.md` with a one-line pointer.
 - Never installs a hook or a daemon.
 - Never requires a build step, a daemon, or a network call at inference time.
 - The `ver-rules` CLI runs once, when you invoke it. It is a file placer, not a runtime.

@@ -7,7 +7,7 @@
 
 ## The Rule
 
-An agent cannot claim a task, intervention, or feature is working without demonstrating verified execution evidence in the session. For software, run the code; for non-code interventions, inspect the authoritative, witnessed execution or rehearsal record.
+An agent cannot claim a task, intervention, or feature is working without demonstrating verified execution evidence in the session under the dual execution standard. For software, run the code; for non-code interventions, inspect the authoritative, witnessed execution or rehearsal record.
 
 ## Falsifiable Checks
 
