@@ -1,5 +1,13 @@
 # V.E.R.
 
+![V.E.R. — Visualize, Engineer, Release](https://raw.githubusercontent.com/PapaBear911/VER/main/docs/assets/ver-readme-banner.webp)
+
+[![Node.js 18+](https://img.shields.io/badge/Node.js-18%2B-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-CLI-F7DF1E?logo=javascript&logoColor=black)](#technology-stack)
+[![npm version](https://img.shields.io/npm/v/%40papabear911%2Fver?logo=npm)](https://www.npmjs.com/package/@papabear911/ver)
+[![CI status](https://github.com/PapaBear911/VER/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PapaBear911/VER/actions/workflows/ci.yml?query=branch%3Amain)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue)](https://github.com/PapaBear911/VER/blob/main/LICENSE)
+
 **Visualize → Engineer → Release** is a workflow for coding agents. It asks the agent to agree on an observable outcome, show evidence from executing the work, and document how to undo the release.
 
 > See it. Build it. Ship it. Every release feeds the next vision.
