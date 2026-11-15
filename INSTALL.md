@@ -34,22 +34,25 @@ One command installs the full rule set — `AGENTS.md` plus `profiles/`, `phases
 `references/`, and `ver-gates/` — with no clone and no manual copying:
 
 ```bash
-npx @papabear911/ver --project
+npx @papabear911/ver ver-rules --project
+# On Windows, `ver` is a cmd.exe builtin that shadows PATH; the package bin is named
+# `ver-rules`. All `npx` commands above explicitly invoke `ver-rules` so they work
+# regardless of how many bins the package ships.
 ```
 
 Three install paths, one package:
 
 | Path | Command | Writes to |
 |---|---|---|
-| **Project** | `npx @papabear911/ver --project [dir]` | `dir` (default `.`) — rule dirs, plus `AGENTS.md` |
-| **User-global** | `npx @papabear911/ver --global` | `~/.claude/ver/`, plus an `@ver/AGENTS.md` import in `~/.claude/CLAUDE.md` |
-| **Agent config** | `npx @papabear911/ver --agent <name>` | the one config file that agent needs (see § 3) |
+| **Project** | `npx @papabear911/ver ver-rules --project [dir]` | `dir` (default `.`) — rule dirs, plus `AGENTS.md` |
+| **User-global** | `npx @papabear911/ver ver-rules --global` | `~/.claude/ver/`, plus an `@ver/AGENTS.md` import in `~/.claude/CLAUDE.md` |
+| **Agent config** | `npx @papabear911/ver ver-rules --agent <name>` | the one config file that agent needs (see § 3) |
 
 Prefer a permanent CLI? Either works identically:
 
 ```bash
-npm install -g @papabear911/ver && ver --project
-npm install -D @papabear911/ver && npx ver --project
+npm install -g @papabear911/ver && ver-rules --project
+npm install -D @papabear911/ver && npx -p @papabear911/ver ver-rules --project
 ```
 
 - **If no `AGENTS.md` exists:** VER copies its full `AGENTS.md` directly into the project root,
@@ -109,7 +112,7 @@ automatically.
 Cursor reads `AGENTS.md` natively at the project root.
 
 - **Nothing else to do** if you use the native rule.
-- To add an explicit Cursor rule, run `npx @papabear911/ver --agent cursor`. It writes
+- To add an explicit Cursor rule, run `npx @papabear911/ver ver-rules --agent cursor`. It writes
   `.cursor/rules/ver.mdc` with required YAML frontmatter. Existing `.mdc` content is preserved.
 - **If `.cursorrules` exists (legacy):** leave it. Cursor reads both. This file still works but
   is deprecated.
@@ -166,9 +169,10 @@ Read AGENTS.md at the repo root. Apply the VER loop to every task.
 ```
 
 The marker makes repeat installs idempotent — running the installer again does not duplicate the
-block. Detection matches the `<!-- VER ` **prefix**, not the version stamp, so upgrading from an
-older VER finds the old block and leaves it alone rather than stacking a second one. This is the
-established pattern: **add, don't replace.**
+block. Detection matches the full versioned marker (`<!-- VER v<semver> — begin/end -->`), not the
+`<!-- VER` prefix alone, so a user comment that merely begins like a marker does not abort a
+repeat install, while upgrading from an older VER still finds the old block and leaves it alone
+rather than stacking a second one. This is the established pattern: **add, don't replace.**
 
 To update the version later, replace only the text between the markers. Everything outside them
 is not yours to touch.
@@ -212,9 +216,9 @@ Developer Mode — which is why the import is the default recommendation everywh
 Run the built-in checker to verify all 6 gates, contracts, manifest files, and marker integrity:
 
 ```bash
-ver --check           # Audit current project directory
-ver --check [dir]     # Audit target directory
-npx @papabear911/ver --check
+ver-rules --check           # Audit current project directory
+ver-rules --check [dir]     # Audit target directory
+npx @papabear911/ver ver-rules --check
 ```
 
 ### Conversational Verification
@@ -244,7 +248,7 @@ I already have an AGENTS.md. What does VER do?
 ## 7. Update / Upgrade
 
 Because the installer adheres to **Append. Never replace**, existing files and user modifications
-are skipped (`skipped`). Running `ver --project` over an existing install will not overwrite rules.
+are skipped (`skipped`). Running `ver-rules --project` over an existing install will not overwrite rules.
 
 ### Upgrading the CLI
 
@@ -257,17 +261,17 @@ npm install -D @papabear911/ver@latest   # if installed in project
 
 To cleanly upgrade an existing installation to a newer release:
 
-1. **Automatic (recommended):** Use `ver --uninstall` to remove unmodified recorded files, then
+1. **Automatic (recommended):** Use `ver-rules --uninstall` to remove unmodified recorded files, then
    re-run the installer:
 
    ```bash
    # In project repo
-   ver --uninstall
-   npx @papabear911/ver@latest --project
+   ver-rules --uninstall
+   npx @papabear911/ver@latest ver-rules --project
 
    # In user global (~/.claude/ver)
-   ver --uninstall --global
-   npx @papabear911/ver@latest --global
+   ver-rules --uninstall --global
+   npx @papabear911/ver@latest ver-rules --global
    ```
 
 2. **Manual:** If you customized rules directly or use git clone:
@@ -289,9 +293,9 @@ npm uninstall @papabear911/ver      # if installed as a project dependency
 **Removing the rules automatically:**
 
 ```bash
-ver --uninstall                   # remove from current project
-ver --uninstall --project [dir]   # remove from target project
-ver --uninstall --global          # remove global install (~/.claude/ver)
+ver-rules --uninstall                   # remove from current project
+ver-rules --uninstall --project [dir]   # remove from target project
+ver-rules --uninstall --global          # remove global install (~/.claude/ver)
 ```
 
 Or manually, in the reverse order they were installed:
@@ -317,4 +321,4 @@ and nothing else — if you cannot tell which lines were yours, you installed it
   `GEMINI.md` keeps its content, and VER's rule goes to `ver/AGENTS.md` with a one-line pointer.
 - Never installs a hook or a daemon.
 - Never requires a build step, a daemon, or a network call at inference time.
-- The `ver` CLI runs once, when you invoke it. It is a file placer, not a runtime.
+- The `ver-rules` CLI runs once, when you invoke it. It is a file placer, not a runtime.

@@ -13,7 +13,7 @@ The tagline is frozen. It is the constitution, not decoration: every rule, gate,
 - **Version:** 2.1.1 — the npm + installer-CLI release
 - **Author:** Ver Sangil
 - **License:** MIT
-- **Root file:** `AGENTS.md` — universal rule; delivered via `@papabear911/ver` with `ver` installer CLI. Still no daemon or inference-time runtime.
+- **Root file:** `AGENTS.md` — universal rule; delivered via `@papabear911/ver` with `ver-rules` installer CLI. Still no daemon or inference-time runtime.
 - **Loop:** Visualize → Engineer → Release → Visualize.
 - **Router:** classify the task before Phase 1; load relevant additive profiles from `profiles/`.
 - **Stacking:** profiles stack; where gates overlap, the stricter gate wins.
@@ -62,8 +62,8 @@ Optional, three passes, each one file:
 - **Refine names:** Validate, Enhance, Review.
 - **Router shape:** domain keyword table and `@domain` / `@domain+domain` syntax; profile additions are allowed, syntax changes are not.
 - **Always-active rules:** Karpathy principles and the 7-rung Ponytail ladder.
-- **Delivery:** npm package `@papabear911/ver` with a one-shot `ver` CLI; no daemon or inference-time runtime.
-- **Install paths:** project (`ver --project [dir]`), user-global (`ver --global`), or agent config (`ver --agent claude|cursor|gemini`).
+- **Delivery:** npm package `@papabear911/ver` with a one-shot `ver-rules` CLI; no daemon or inference-time runtime.
+- **Install paths:** project (`ver-rules --project [dir]`), user-global (`ver-rules --global`), or agent config (`ver-rules --agent claude|cursor|gemini`).
 - **Installation:** append, never replace any existing agent configuration or user content.
 
 ## Stability commitment (1.x)

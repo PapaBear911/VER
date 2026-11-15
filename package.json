@@ -3,7 +3,7 @@
   "version": "2.1.1",
   "description": "V.E.R. — Visualize → Engineer → Release. Universal agent rules, with an installer that appends and never replaces.",
   "bin": {
-    "ver": "bin/ver.js"
+    "ver-rules": "bin/ver.js"
   },
   "files": [
     "bin",
@@ -22,6 +22,7 @@
   },
   "scripts": {
     "test": "node --test test/ver.test.js",
+    "test:coverage": "node --test --experimental-test-coverage test/ver.test.js",
     "prepublishOnly": "npm test"
   },
   "license": "MIT",

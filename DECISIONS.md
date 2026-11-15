@@ -162,3 +162,24 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
 - **Rollback plan:** To undo: remove the `Recurs:`/`Promoted:` block from the `receipt-log`
   section of `bin/ver.js`, revert the format block in `AGENTS.md`, and delete this entry's
   invariant #16.
+
+## 2026-10-12 — CLI binary renamed to ver-rules; installer audit gaps closed
+
+- **Decision:** Rename the package binary in `package.json` from `ver` to `ver-rules`. Close four
+  installer safety defects: (1) restore 0-byte pre-existing files without unlinking them; (2) require
+  `ver-gates/` to exist inside the target directory during `--check` (no silent package fallback);
+  (3) narrow marker detection to `/<!-- VER v\d/` so user comments containing `<!-- VER ` do not abort
+  installation; (4) guard ancestor-directory pruning against path traversal.
+- **Rationale:** On Windows, `cmd.exe` has an internal `ver` command that shadows PATH resolution.
+  Any package publishing a `ver` bin silently fails when invoked bare via cmd.exe or `npx`, printing
+  the Windows version banner and ignoring arguments. `ver-rules` has no shell collisions and is the
+  only bin, so `npx @papabear911/ver` resolves unambiguously. The four installer fixes ensure the
+  contract "appends and never replaces" holds on zero-byte files, false-positive marker comments,
+  and uninstalled audits.
+- **Rejected alternatives:**
+  - Keeping `ver` as an alias alongside `ver-rules`: rejected because npm auto-selects the binary
+    matching the package name (`ver`), re-introducing the cmd.exe collision on Windows.
+  - Runtime wrapper script detecting Windows: unnecessary complexity; a distinct bin name is the
+    native npm pattern.
+- **Rollback plan:** To undo: restore `"ver": "bin/ver.js"` in `package.json`, revert `bin/ver.js`
+  changes, and update `CONTEXT.md` facts.

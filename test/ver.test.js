@@ -156,6 +156,17 @@ test('uninstall: agent imports and cursor rule removed', () => {
   assert.strictEqual(claudeRestored, USER_RULE);
 });
 
+test('check: global install dir passes contracts with its own copied gates', () => {
+  const fakeHome = tmp();
+  const env = { HOME: fakeHome, USERPROFILE: fakeHome };
+  const globalDir = path.join(fakeHome, '.claude', 'ver');
+  runEnv(fakeHome, env, '--global');
+  assert.ok(
+    runEnv(globalDir, env, '--check', globalDir).includes('All configured static checks passed')
+  );
+  runEnv(fakeHome, env, '--uninstall', '--global');
+});
+
 test('global install and uninstall', () => {
   const fakeHome = tmp();
   const env = { HOME: fakeHome, USERPROFILE: fakeHome };
@@ -265,6 +276,59 @@ test('router: every rule path AGENTS.md points at exists on disk', () => {
   for (const raw of refs) {
     const rel = raw.replace(/`/g, '');
     assert.ok(fs.existsSync(path.join(ROOT, rel)), `AGENTS.md points at missing path: ${rel}`);
+  }
+});
+
+test('uninstall: a pre-existing empty file is restored empty, not deleted', () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'AGENTS.md'), '');
+  run(dir, '--project');
+  run(dir, '--uninstall', '--project', dir);
+  assert.ok(fs.existsSync(path.join(dir, 'AGENTS.md')), 'pre-existing empty AGENTS.md was deleted');
+  assert.strictEqual(fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8'), '');
+});
+
+test('check: fails contracts when the project ships no ver-gates of its own', () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'AGENTS.md'), USER_RULE);
+  assert.throws(() => run(dir, '--check', dir), /Gate: contracts/, 'audited the package bundle, not the project');
+});
+
+test('uninstall: manifest paths outside the project are never pruned', () => {
+  const parent = tmp();
+  const dir = path.join(parent, 'project');
+  fs.mkdirSync(path.join(dir, '.ver'), { recursive: true });
+  const victim = path.join(parent, 'victim');
+  fs.mkdirSync(victim);
+  fs.writeFileSync(
+    path.join(dir, '.ver', 'ver-manifest.json'),
+    JSON.stringify({
+      version: 1,
+      files: {
+        'ghost.txt': { orig: null, hash: null },
+        'nested/../../victim/ghost.txt': { orig: null, hash: null },
+      },
+    })
+  );
+  run(dir, '--uninstall', '--project', dir);
+  assert.ok(fs.existsSync(victim), 'a directory outside the project was pruned');
+});
+
+test('install: a user comment that merely starts like a marker does not suppress install', () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'AGENTS.md'), `<!-- VER note to self -->\n${USER_RULE}`);
+  run(dir, '--project');
+  const out = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8');
+  assert.ok(out.startsWith('<!-- VER v'), 'block not prepended');
+  assert.ok(out.includes('note to self'), 'user content destroyed');
+});
+
+test('package: bin name avoids collisions with shell builtins', () => {
+  const bin = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).bin;
+  const names = Object.keys(bin);
+  assert.ok(!names.includes('ver'), '"ver" is shadowed by the cmd.exe builtin on Windows');
+  for (const name of names) {
+    assert.ok(fs.existsSync(path.join(ROOT, bin[name])), `missing bin target for ${name}: ${bin[name]}`);
   }
 });
 
