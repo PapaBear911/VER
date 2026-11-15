@@ -1,4 +1,4 @@
-# V.E.R. — v2.1.1
+# V.E.R. — v2.1.2
 
 > See it. Build it. Ship it. Every release feeds the next vision.
 
@@ -22,7 +22,7 @@ Decide the lane in order. Stop at the first match.
 
 1. Inside an active task and this adds no new scope? → **stay in the loop.**
 2. A bare approval token (`yes` `go` `approved` `ship it` `looks good`)? → **Gate 1 pass;** go to Engineer.
-3. A change verb on code, design, docs, or infra — build, add, fix, refactor, migrate, delete, design, review, test, deploy? → **engage the loop.**
+3. A change verb or deliverable (code, infra, policy, study, physical work) — build, add, fix, refactor, enact, commission, test, deploy? → **engage the loop.**
 4. Forced? `@ver` engages; `@q` or `@nover` answers directly.
 5. A social opener, a pure question, a recap, or a doc lookup? → **answer directly. Load no phase or gate file.**
 6. None of the above, but it still looks like a change? → **ask once:** "This looks like a change — engage VER?" Engage only on an affirmative.
@@ -33,8 +33,8 @@ Never preload everything. Read only what the current step needs.
 
 1. Loop and gates: `phases/visualize.md`, `phases/engineer.md`, `phases/release.md`.
 2. Always active while working: `references/karpathy-principles.md`, `references/ponytail-ladder.md`.
-3. Refine passes on demand: `refine/` — "validate", "review the diff", "tighten it", "simplify".
-4. Close each phase against its gate in `ver-gates/`. Audit any time: `ver --check [dir]` — static files and local contracts only. Session evidence (approval, executed tests) remains a manual agent check.
+3. Refine passes on demand: `refine/` — "validate", "review the diff", "tighten it", "simplify", "distill this".
+4. Close each phase against its gate in `ver-gates/`. Audit any time: `ver-rules --check [dir]` (or `npx @papabear911/ver ver-rules --check [dir]`) — static files and local contracts only. Session evidence (approval, executed tests) remains a manual agent check.
 
 ## Task routing (before Phase 1)
 
@@ -52,9 +52,11 @@ is a missed gate.
 | devops | `profiles/devops.md` | deploy, infra, config, terraform, container, CI, pipeline |
 | testing | `profiles/testing.md` | test, spec, coverage, mock, fixture |
 | docs | `profiles/docs.md` | readme, doc, comment, changelog, tutorial |
+| policy | `profiles/policy.md` | ordinance, governance, regulation, pilot, institutional rule |
+| research | `profiles/research.md` | study, cohort, trial, hypothesis, methodology, empirical |
 
 `@domain` forces one; `@domain+domain` forces several. Two profiles on one phase → the stricter gate
-wins. No match → base loop. A pure question → answer directly (see Entry).
+wins. Action disambiguation: software retry/IAM policies route to programming/security; code research routes to lookup/programming. No match → base loop. A pure question → answer directly (see Entry).
 
 ## Core rules
 
@@ -63,7 +65,7 @@ wins. No match → base loop. A pure question → answer directly (see Entry).
 3. **Boring tools, boring code.** Proven over novel; explicit over clever.
 4. **Code is a tutorial.** A reader learns the domain and intent top to bottom.
 5. **Delete aggressively.** Deletion beats addition within task blast radius.
-6. **Running code is the only truth.** A test you did not run is a hypothesis.
+6. **Running code or observed execution is the only truth.** Code requires executed output; non-code requires authoritative execution records.
 7. **One learning per release.** If nothing went in `vision-log.md`, the loop did not close.
 8. **Append-only boundaries.** `vision-log.md`, `DECISIONS.md`, and config blocks are append-only.
    Never truncate or replace files outside the approved task blast radius.

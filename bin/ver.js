@@ -8,13 +8,22 @@ const crypto = require('crypto');
 const pkg = require('../package.json');
 const SRC = path.join(__dirname, '..');
 const RULE_DIRS = ['profiles', 'phases', 'refine', 'references', 'ver-gates'];
-const MARK = '<!-- VER ';
+const MARK_RE = /<!-- VER v\d+\.\d+\.\d+ — (?:begin|end) -->/;
 const MANIFEST_REL = path.join('.ver', 'ver-manifest.json');
 const BLOCK = (body) =>
-  `${MARK}v${pkg.version} — begin -->\n${body}\n${MARK}v${pkg.version} — end -->`;
+  `<!-- VER v${pkg.version} — begin -->\n${body}\n<!-- VER v${pkg.version} — end -->`;
 
 const log = (file, action) => console.log(`${action.padEnd(8)} ${file}`);
 const sha = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
+const safeChild = (dir, rel) => {
+  if (path.isAbsolute(rel)) return null;
+  const root = path.resolve(dir);
+  const file = path.resolve(root, rel);
+  const fromRoot = path.relative(root, file);
+  return fromRoot && fromRoot !== '..' && !fromRoot.startsWith(`..${path.sep}`) && !path.isAbsolute(fromRoot)
+    ? file
+    : null;
+};
 
 // Ownership tracker for a single install run. Uninstall deletes or restores a file
 // only if (a) this run created/modified it and (b) its bytes are still the recorded ones.
@@ -98,9 +107,12 @@ function uninstallRecorded(dir) {
     console.log('No VER install manifest found; nothing removed. See INSTALL.md §7 for manual cleanup.');
     return;
   }
+  const root = path.resolve(dir);
+  const prunable = [];
   for (const [rel, rec] of Object.entries(manifest.files)) {
-    if (rel.startsWith('..') || path.isAbsolute(rel)) continue;
-    const file = path.join(dir, rel);
+    const file = safeChild(root, rel);
+    if (!file) continue;
+    prunable.push(file);
     if (!fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
     if (rec.hash !== sha(fs.readFileSync(file))) {
       log(file, 'kept (modified)');
@@ -109,24 +121,23 @@ function uninstallRecorded(dir) {
     if (rec.orig !== null) {
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(file, rec.orig);
-      if (!rec.orig) fs.unlinkSync(file);
       log(file, 'restored');
     } else {
       fs.unlinkSync(file);
       log(file, 'removed');
     }
   }
-  const mf = path.join(dir, MANIFEST_REL);
+  const mf = path.join(root, MANIFEST_REL);
   if (fs.existsSync(mf) && fs.statSync(mf).isFile()) fs.unlinkSync(mf);
   // Prune empty dirs the manifest created or held, deepest first.
   // Collect every ancestor of each recorded file (so `.cursor`, `.ver`, `profiles`… all close),
   // plus the manifest's own `.ver` parent. rmdir fails silently on non-empty.
   const dirs = new Set();
-  for (const rel of Object.keys(manifest.files)) {
-    let d = path.dirname(rel);
-    while (d && d !== '.') { dirs.add(path.join(dir, d)); d = path.dirname(d); }
+  for (const file of prunable) {
+    let d = path.dirname(file);
+    while (d !== root && d !== path.dirname(d) && d.startsWith(root)) { dirs.add(d); d = path.dirname(d); }
   }
-  dirs.add(path.join(dir, '.ver'));
+  dirs.add(path.join(root, '.ver'));
   for (const d of [...dirs].sort((a, b) => b.length - a.length)) {
     try { fs.rmdirSync(d); } catch {}
   }
@@ -144,7 +155,7 @@ function write(file, next, action) {
 /** Prepend `body` above existing content at the top of `file`. INSTALL.md §4. */
 function prependBlock(file, body) {
   const prev = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  if (prev.includes(MARK)) return log(file, 'skipped');
+  if (MARK_RE.test(prev)) return log(file, 'skipped');
   write(file, prev ? `${BLOCK(body)}\n\n${prev}` : `${BLOCK(body)}\n`, prev ? 'appended' : 'created');
 }
 
@@ -180,7 +191,7 @@ function installProject(dir) {
     return 'AGENTS.md';
   }
   const existing = fs.readFileSync(root);
-  if (existing.equals(fs.readFileSync(source)) || existing.toString('utf8').includes(MARK)) {
+  if (existing.equals(fs.readFileSync(source)) || MARK_RE.test(existing.toString('utf8'))) {
     log(root, 'skipped');
     endTrack(dir);
     return 'AGENTS.md';
@@ -250,17 +261,10 @@ function checkGates(dir) {
     console.log(`✔ Gate: ${gate} — ${msg}`);
   };
 
-  const gatesDir = fs.existsSync(path.join(dir, 'ver-gates'))
-    ? path.join(dir, 'ver-gates')
-    : path.join(SRC, 'ver-gates');
-  let contractsOk = true;
-  for (const g of GATES) {
-    if (!fs.existsSync(path.join(gatesDir, g, 'GATE.md'))) {
-      fail(g, `missing GATE.md in ${g}`);
-      contractsOk = false;
-    }
-  }
-  if (contractsOk) ok('contracts', 'all 6 gate definitions present');
+  const gatesDir = path.join(dir, 'ver-gates');
+  const missing = GATES.filter((g) => !fs.existsSync(path.join(gatesDir, g, 'GATE.md')));
+  if (missing.length) fail('contracts', `missing GATE.md in ${gatesDir}: ${missing.join(', ')}`);
+  else ok('contracts', 'all 6 gate definitions present');
 
   const agentsMd = path.join(dir, 'AGENTS.md');
   const verAgentsMd = path.join(dir, 'ver', 'AGENTS.md');
@@ -332,13 +336,49 @@ function checkGates(dir) {
   return true;
 }
 
-const HELP = `ver ${pkg.version} — V.E.R. installer. Appends. Never replaces.
+function installHook(dir) {
+  const gitDir = path.join(dir, '.git');
+  if (!fs.existsSync(gitDir)) {
+    console.error(`Error: Not a git repository (no .git directory found in ${dir}).`);
+    process.exitCode = 1;
+    return false;
+  }
+  const hooksDir = path.join(gitDir, 'hooks');
+  if (!fs.existsSync(hooksDir)) fs.mkdirSync(hooksDir, { recursive: true });
+  const hookFile = path.join(hooksDir, 'pre-commit');
 
-  ver --project [dir]     Install into a repo (default: .)
-  ver --global            Install into ~/.claude/ver/ + import from ~/.claude/CLAUDE.md
-  ver --agent <name>      Install rules + config touch: claude, cursor, gemini
-  ver --uninstall         Remove installed rules and imports (--project [dir] or --global)
-  ver --check [dir]       Audit V.E.R. gates, contracts, and invariants (default: .)
+  const hookCheck = 'if command -v ver-rules >/dev/null 2>&1; then\n  ver-rules --check .\nelif [ -f "bin/ver.js" ]; then\n  node bin/ver.js --check .\nelse\n  npx @papabear911/ver ver-rules --check .\nfi';
+
+  if (fs.existsSync(hookFile)) {
+    const existing = fs.readFileSync(hookFile, 'utf8');
+    if (existing.includes('ver-rules --check') || existing.includes('V.E.R. audit hook')) {
+      console.log('pre-commit hook already includes V.E.R. audit (skipped).');
+      return true;
+    }
+    fs.appendFileSync(hookFile, `\n\n# --- V.E.R. audit hook ---\n${hookCheck}\n`);
+    try { fs.chmodSync(hookFile, 0o755); } catch {}
+    console.log('Appended V.E.R. audit to existing .git/hooks/pre-commit');
+    return true;
+  }
+
+  const script = `#!/bin/sh\n# --- V.E.R. audit hook ---\n${hookCheck}\n`;
+  fs.writeFileSync(hookFile, script, { mode: 0o755 });
+  try { fs.chmodSync(hookFile, 0o755); } catch {}
+  console.log('Created .git/hooks/pre-commit with V.E.R. audit.');
+  return true;
+}
+
+const HELP = `${pkg.name} ${pkg.version} — V.E.R. installer. Appends. Never replaces.
+
+  ver-rules --project [dir]     Install into a repo (default: .)
+  ver-rules --global            Install into ~/.claude/ver/ + import from ~/.claude/CLAUDE.md
+  ver-rules --agent <name>      Install rules + config touch: claude, cursor, gemini
+  ver-rules --hook [dir]        Install pre-commit hook running audit before commits
+  ver-rules --uninstall         Remove installed rules and imports (--project [dir] or --global)
+  ver-rules --check [dir]       Audit V.E.R. gates, contracts, and invariants (default: .)
+
+The CLI is named ver-rules, not ver: cmd.exe has a built-in "ver" that shadows
+any PATH entry, so a binary named "ver" silently does nothing on Windows.
 
 Native readers (Windsurf, Copilot, Codex, Aider, OpenCode, Amp, RooCode,
 Devin, Zed) need no flag — they read AGENTS.md at the repo root already.
@@ -355,6 +395,13 @@ function main(argv) {
     const dir =
       checkAt !== -1 && a[checkAt + 1] && !a[checkAt + 1].startsWith('-') ? a[checkAt + 1] : '.';
     return checkGates(path.resolve(dir));
+  }
+
+  if (a.includes('--hook')) {
+    const hookAt = a.indexOf('--hook');
+    const dir =
+      hookAt !== -1 && a[hookAt + 1] && !a[hookAt + 1].startsWith('-') ? a[hookAt + 1] : '.';
+    return installHook(path.resolve(dir));
   }
 
   if (a.includes('--uninstall')) {

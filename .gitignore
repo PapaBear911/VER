@@ -1,0 +1,12 @@
+# Local receipt log (local-only, never uploaded to git)
+vision-log.md
+
+# Dependencies
+node_modules/
+
+# Local state
+.ver/
+
+# System / Editor
+.DS_Store
+Thumbs.db

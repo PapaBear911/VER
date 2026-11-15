@@ -26,7 +26,7 @@ line, ask: did a loaded profile require it? If yes, it is not optional and not d
    - Can it be one line?
    - Is it the minimum code that works?
 3. Delete dead lines, speculative wrappers, redundant checks, and comments that restate the code.
-4. Verify every deliberate simplification has a `ponytail:` comment with ceiling and upgrade path.
+4. Verify every deliberate simplification has a `ceiling:` comment with ceiling and upgrade path.
 5. Audit the diff: is it the smallest coherent change that meets the approved Vision?
 
 ## Output before/after line count and summary

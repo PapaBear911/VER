@@ -38,25 +38,23 @@ Diff created
      │
      ▼
 Layer 1: Automated Gate (runs on EVERY release)
-  - OWASP-class patterns (SQLi, XSS, SSRF, path traversal)
-  - Hardcoded secrets, keys, credentials
-  - Insecure deserialization, unvalidated input
+  - Code: OWASP-class patterns (SQLi, XSS, SSRF, path traversal), secrets, unvalidated input
+  - Non-code: Scrub for PII/participant data leaks, unredacted personnel records, spec rating checks
      │
      ├─ PASS ──► sensitive surface touched?
      │                ├─ NO  ──► proceed
      │                └─ YES ──► Layer 2
      ▼
 Layer 2: Security Guard (fires on sensitive surfaces)
-  - Sensitive surfaces: auth, secrets, user input, data deletion, admin/permissions, sessions
-  - Contextual checks: logic flaws, data flow, privilege escalation, excessive agency
+  - Code: auth, secrets, user input, data deletion, admin/permissions, sessions
+  - Non-code: physical building security, solo-worker protections, IRB/ethics compliance, life-safety transfer
      │
      ├─ CONFIDENT PASS ──► proceed
      └─ UNCERTAIN OR SEVERE ──► Layer 3
      ▼
 Layer 3: Human-in-the-Loop (fires on escalation only)
   - Guard lacks confidence
-  - Change is irreversible or highest severity
-  - Novel pattern
+  - Change is irreversible, high-severity, novel, or involves life-safety / institutional liability
 ```
 
 See `references/security-gates.md`.
@@ -65,7 +63,7 @@ See `references/security-gates.md`.
 
 ```markdown
 ## Shipped
-[Observable behavior now present.]
+[Observable behavior now present, or authorized intervention enacted/published.]
 
 ## Skipped
 [Scope deferred, or "Nothing."]
@@ -74,10 +72,13 @@ See `references/security-gates.md`.
 [Known risk or follow-up, or "Nothing."]
 
 ## Verification
-[Exact command and observed result.]
+[Exact command and observed result, or witnessed execution record and activation proof.]
 
 ## To undo
-[Command or process to reverse this release completely.]
+[Command or process to reverse this release completely. For non-code interventions where atomic reversal is unavailable, use the Three-Part Bounded Undo:
+ 1. Responsible authority: [role authorized to suspend/revert]
+ 2. Mitigation steps: [immediate actions to halt/contain]
+ 3. Irreversible residuals: [catalog of permanent effects/costs]]
 ```
 
 The rollback line is **mandatory**. Every release note must say how to undo it.
@@ -117,15 +118,19 @@ Profiles commonly add here:
 - **testing** — coverage delta reported; no regression.
 - **docs** — links verified; examples verified against current code.
 - **data** — migration rollback plan tested or dry-run.
+- **policy** — formal decision tied to final version, proof of live schedule/notices, authorized suspension procedure, assigned review role comparing use/cost/complaints with baseline.
+- **research** — claims and tables traced to verified outputs, publication authorization & publication record for exact version, reproducibility package with controlled data-access pointer, correction/retraction authority and supersession identifier.
 
 When two profiles add gates to this phase, the stricter gate wins.
 
 ## HARD GATE 3 — Shipped and logged
 
-- [ ] Narrowest verification re-run after refinement; output shown.
-- [ ] Security gate completed (Layer 1 always; Layer 2/3 if required).
+- [ ] Narrowest verification re-run after refinement or execution/activation record confirmed; output/proof shown.
+- [ ] Security gate completed with checks appropriate to the release package (Layer 1 always; Layer 2/3 if required).
+- [ ] Authorized handoff, activation, publication, or signed acceptance verified.
+- [ ] Restricted evidence referenced via inspectable pointers; no secrets or raw PII in public logs.
 - [ ] Public surface inspected; all changes named explicitly.
-- [ ] Drift check complete — code, tests, comments, approved Vision agree.
+- [ ] Drift check complete — code, tests, comments, procedures, approved Vision agree.
 - [ ] Profile gates for this phase completed.
-- [ ] Release note answers all sections including the rollback line.
+- [ ] Release note answers all sections including the rollback line (command or Three-Part Bounded Undo).
 - [ ] `vision-log.md` updated with one learning and optional next-V seed.

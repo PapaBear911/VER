@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "dev/**" ]
+  pull_request:
+    branches: [ "main", "dev/**" ]
+
+jobs:
+  test:
+    name: Test & Audit (Node ${{ matrix.node-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Run installer test suite
+        run: npm test
+
+      - name: Run V.E.R. self-audit
+        run: node bin/ver.js --check .
+
+      - name: Run test coverage
+        run: npm run test:coverage

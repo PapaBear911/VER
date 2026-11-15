@@ -62,6 +62,16 @@ Ask **one** clarifying question, wait for the answer, then ask the next only if 
 changed the plan. Never a list of five. Each question you can answer by reading the code is not a
 question — go read.
 
+### The Three Traps check (sensitive or multi-agent tasks)
+
+When a task touches sensitive surfaces (`security`, `data` schema, state deletion, or multi-agent delegation), surface and resolve the **Three Traps** before presenting the Vision:
+
+1. **Boundary/Failure Trap:** What happens if an external dependency fails, times out, or returns malformed data?
+2. **Ceiling Trap:** What is the concurrency, volume, or performance ceiling before this design breaks? (State the upgrade path).
+3. **Irreversibility Trap:** What data, state, or side-effect cannot be undone if this fails?
+
+Trivial, single-file, or fully-specified tasks bypass the Three Traps check.
+
 ### Tradeoff presentation format
 
 ```
@@ -84,9 +94,11 @@ Out of scope: [explicitly not touching]
 **Profiles loaded:** [from router, or "base loop"]
 **Done looks like:** [one observable sentence]
 **Approach:** [one sentence]
+**Contract Boundary:** [function signature, CLI flag, schema, or test assertion for caller or worker handoff]
 **Files touched:** [list, or "discovered in Establish"]
 **Assumptions:**
 - [falsifiable sentence]
+**The Three Traps:** [boundary safeguard, ceiling limit, reversibility check]
 **Out of scope:** [deliberately not changing]
 **Verification:** [exact command that proves it]
 ```
@@ -101,17 +113,20 @@ Profiles commonly add here:
 - **devops** — a change plan and its blast radius.
 - **ui** — a layout and state contract.
 - **programming** — a contract check: what does this function promise its callers?
+- **policy** — access problem, baseline data, affected patrons/staff, marginalized groups check, evidence quality, options, consultation plan, decision authority, success & suspension criteria.
+- **research** — association/causal question, cohort definition, outcome/comparison metrics, confounding variables, missing data handling, reporting limits, reproducibility criteria, IRB/ethics and data-access authority.
 
 When two profiles add gates to this phase, the stricter gate wins.
 
 ## HARD GATE 1 — Vision approved
 
 - [ ] Task routed; profiles loaded and named.
-- [ ] Outcome stated as an observable sentence with a success criterion.
-- [ ] Read step completed; existing code and dependencies inventoried.
+- [ ] Outcome stated as an observable sentence with observable pass and fail criteria.
+- [ ] Read step completed; existing code, policies, or physical assets inventoried.
 - [ ] Every assumption written as a falsifiable sentence.
 - [ ] Rung 1 answered — does this need to exist?
 - [ ] At least two options with costs; choice justified against this outcome.
+- [ ] Institutional authorization identified and records referenced for consequential real-world interventions.
 - [ ] Profile gates for this phase completed.
 - [ ] Approval token received: `yes`, `go`, `approved`, `ship it`, `looks good`.
 

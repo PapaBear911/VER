@@ -11,13 +11,17 @@ V.E.R. (**V**isualize → **E**ngineer → **R**elease) is an always-on agent ru
 Install the full rule set into your repository in one command:
 
 ```bash
-npx @papabear911/ver --project
+npx @papabear911/ver ver-rules --project
 ```
+
+> **Windows note:** the package binary is named `ver-rules`, not `ver`, because
+> `ver` is a built-in command in cmd.exe and would silently do nothing when invoked bare.
+> All `npx` commands above explicitly invoke `ver-rules` so they work regardless of bin count.
 
 Confirm it worked — this prints a file-by-file log, then exits `0`:
 
 ```bash
-npx @papabear911/ver --check .
+npx @papabear911/ver ver-rules --check .
 # ✔ Gate: contracts — all 6 gate definitions present
 # ✔ Gate: file-existence — AGENTS.md present and readable
 # ✔ Gate: receipt-log — no vision-log.md (skipped)
@@ -29,9 +33,10 @@ Three installation targets are available:
 
 | Target | Command | Result |
 |---|---|---|
-| **Project** | `npx @papabear911/ver --project [dir]` | Places `AGENTS.md` and rule directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`) |
-| **User-global** | `npx @papabear911/ver --global` | Installs to `~/.claude/ver/` with an `@ver/AGENTS.md` import |
-| **Agent config** | `npx @papabear911/ver --agent <name>` | Updates configuration for `claude`, `cursor`, or `gemini` |
+| **Project** | `npx @papabear911/ver ver-rules --project [dir]` | Places `AGENTS.md` and rule directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`) |
+| **Git Hook** | `npx @papabear911/ver ver-rules --hook [dir]` | Appends automated V.E.R. audit to `.git/hooks/pre-commit` |
+| **User-global** | `npx @papabear911/ver ver-rules --global` | Installs to `~/.claude/ver/` with an `@ver/AGENTS.md` import |
+| **Agent config** | `npx @papabear911/ver ver-rules --agent <name>` | Updates configuration for `claude`, `cursor`, or `gemini` |
 
 ### Install with an AI agent (copy-paste)
 
@@ -41,9 +46,9 @@ Already use a coding agent (Claude Code, Cursor, Gemini CLI)? Paste one of these
 
 ```text
 Install the V.E.R. agent rule set into this project using the published npm package. Run:
-  npx @papabear911/ver --project
+  npx @papabear911/ver ver-rules --project
 Then verify by running:
-  npx @papabear911/ver --check .
+  npx @papabear911/ver ver-rules --check .
 Report the exact command output. --project creates the rule directories (profiles/, phases/, refine/, references/, ver-gates/); it skips any file that already exists and never overwrites your rules. If AGENTS.md already exists, confirm your content is preserved with a marked VER block prepended.
 ```
 
@@ -51,9 +56,9 @@ Report the exact command output. --project creates the rule directories (profile
 
 ```text
 Install the V.E.R. agent rule set globally using the published npm package. Run:
-  npx @papabear911/ver --global
+  npx @papabear911/ver ver-rules --global
 This installs to ~/.claude/ver/ and adds an @ver/AGENTS.md import to ~/.claude/CLAUDE.md. Verify by running:
-  npx @papabear911/ver --check ~/.claude/ver
+  npx @papabear911/ver ver-rules --check ~/.claude/ver
 Report the exact command output. --global writes only into ~/.claude/ver/ and adds an @ver/AGENTS.md import to ~/.claude/CLAUDE.md; it does not touch your project files.
 ```
 
@@ -90,7 +95,14 @@ Agent (Release): Rollback: revert this commit. vision-log.md: one learning logge
                                         <-- HARD GATE 3
 ```
 
-A greeting or a pure question ("what is the VER loop?") skips all of this — VER answers directly and loads nothing. Full worked example with code and a threat model: [`examples/walkthrough.md`](examples/walkthrough.md).
+A greeting or a pure question ("what is the VER loop?") skips all of this — VER answers directly and loads nothing. 
+
+Full worked examples across domains:
+- **Software Engineering:** [`examples/walkthrough.md`](examples/walkthrough.md) (Password reset flow with security threat model).
+- **Policy Making:** [`examples/policy-walkthrough.md`](examples/policy-walkthrough.md) (8-week library evening-hours pilot with consultation and suspension triggers).
+- **Scientific Research:** [`examples/research-walkthrough.md`](examples/research-walkthrough.md) (Tutoring attendance & course completion observational study with independent rerun).
+- **Physical Commissioning:** [`examples/commissioning-walkthrough.md`](examples/commissioning-walkthrough.md) (Emergency generator site acceptance load test under shared base rules).
+- **Cross-Domain Candidate Assessment:** [`references/cross-domain-candidates.md`](references/cross-domain-candidates.md).
 
 ### The Golden Rule: Append, Never Replace
 
@@ -165,6 +177,8 @@ Before Phase 1 starts, a 15-line router reads the task description, detects doma
 | devops | [`profiles/devops.md`](profiles/devops.md) | deploy, infra, config, terraform, container, CI, pipeline |
 | testing | [`profiles/testing.md`](profiles/testing.md) | test, spec, coverage, mock, fixture |
 | docs | [`profiles/docs.md`](profiles/docs.md) | readme, doc, comment, changelog, tutorial |
+| policy | [`profiles/policy.md`](profiles/policy.md) | ordinance, governance, regulation, pilot, institutional rule |
+| research | [`profiles/research.md`](profiles/research.md) | study, cohort, trial, hypothesis, methodology, empirical |
 
 - **Manual Override:** Prefix tasks with `@domain` or `@domain+domain` (e.g. `@security+ux add password reset flow`).
 - **Stacking Rule:** Profiles stack. When gates conflict or overlap, **the stricter gate wins**.
@@ -189,6 +203,7 @@ Optional standalone passes to inspect or polish changes at any stage:
 | **Validate** | [`refine/validate.md`](refine/validate.md) | "validate", "does this match vision?" | No silent drift or gaps accepted |
 | **Enhance** | [`refine/enhance.md`](refine/enhance.md) | "tighten it", "simplify", "delete unneeded" | Diff is minimal coherent change |
 | **Review** | [`refine/review.md`](refine/review.md) | "review the diff", "ready to ship?" | Verdict must be Ship before release |
+| **Distill** | [`refine/distill.md`](refine/distill.md) | "distill this", "make this a reference" | Extracted rules actionable, deduped, and shaped |
 
 ### Repository Verification
 Run the installer test suite:
@@ -203,12 +218,22 @@ Tests run via Node.js built-in test runner against [`test/ver.test.js`](test/ver
 
 ## References
 
+### Core Framework
 - [`AGENTS.md`](AGENTS.md) — The core constitution and loop definitions.
 - [`INSTALL.md`](INSTALL.md) — Detailed agent-specific setup and troubleshooting.
 - [`INVARIANTS.md`](INVARIANTS.md) — Project non-negotiables and governance rules.
 - [`BOOTSTRAP.md`](BOOTSTRAP.md) — Prompt snippet for session initialization.
+- [`references/ver-core.md`](references/ver-core.md) — One-page universal loop and gate reference.
+
+### Active Engineering References
 - [`references/karpathy-principles.md`](references/karpathy-principles.md) — First-principles engineering heuristics.
-- [`references/ponytail-ladder.md`](references/ponytail-ladder.md) — Seven-rung simplicity ladder and simplification guidelines.
+- [`references/ponytail-ladder.md`](references/ponytail-ladder.md) — Seven-rung simplicity ladder and ceiling annotations.
+- [`references/security-gates.md`](references/security-gates.md) — Three-tier layered security model.
+- [`references/ux-checklist.md`](references/ux-checklist.md) — Five-State Check and Human-Path verification.
+- [`references/testing-strategies.md`](references/testing-strategies.md) — Contract, boundary, and regression test rules.
+- [`references/dependencies.md`](references/dependencies.md) — Standard library and platform-first dependency criteria.
+- [`references/brownfield.md`](references/brownfield.md) — Surgical adaptation to existing codebases.
+- [`references/copy-guide.md`](references/copy-guide.md) — User-facing messaging and error state copy rules.
 
 ---
 

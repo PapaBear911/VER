@@ -162,3 +162,75 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
 - **Rollback plan:** To undo: remove the `Recurs:`/`Promoted:` block from the `receipt-log`
   section of `bin/ver.js`, revert the format block in `AGENTS.md`, and delete this entry's
   invariant #16.
+
+## 2026-10-12 — CLI binary renamed to ver-rules; installer audit gaps closed
+
+- **Decision:** Rename the package binary in `package.json` from `ver` to `ver-rules`. Close four
+  installer safety defects: (1) restore 0-byte pre-existing files without unlinking them; (2) require
+  `ver-gates/` to exist inside the target directory during `--check` (no silent package fallback);
+  (3) narrow marker detection to `/<!-- VER v\d/` so user comments containing `<!-- VER ` do not abort
+  installation; (4) guard ancestor-directory pruning against path traversal.
+- **Rationale:** On Windows, `cmd.exe` has an internal `ver` command that shadows PATH resolution.
+  Any package publishing a `ver` bin silently fails when invoked bare via cmd.exe or `npx`, printing
+  the Windows version banner and ignoring arguments. `ver-rules` has no shell collisions and is the
+  only bin, so `npx @papabear911/ver` resolves unambiguously. The four installer fixes ensure the
+  contract "appends and never replaces" holds on zero-byte files, false-positive marker comments,
+  and uninstalled audits.
+- **Rejected alternatives:**
+  - Keeping `ver` as an alias alongside `ver-rules`: rejected because npm auto-selects the binary
+    matching the package name (`ver`), re-introducing the cmd.exe collision on Windows.
+  - Runtime wrapper script detecting Windows: unnecessary complexity; a distinct bin name is the
+    native npm pattern.
+- **Rollback plan:** To undo: restore `"ver": "bin/ver.js"` in `package.json`, revert `bin/ver.js`
+  changes, and update `CONTEXT.md` facts.
+
+## 2026-11-15 — v2.1.2: Release packaging, CI automation, and local receipt hygiene
+
+- **Decision:** Release v2.1.2 as a patch release. Consolidate the `ver-rules` Windows CLI rename, installer safety fixes, GitHub Actions CI workflow, `package-lock.json`, native test coverage script, Keep a Changelog documentation, and explicit exclusion of local-only receipts (`vision-log.md`) via `.gitignore`.
+- **Rationale:** Patch release accurately reflects backward-compatible installer bugfixes, shell collision protection on Windows, and developer automation improvements without altering core rule syntax or the three-phase loop.
+- **Alternatives rejected:** v2.2.0 minor release (rejected to maintain conservative SemVer, as no breaking API or core router syntax changed).
+- **Rollback plan:** To undo: checkout v2.1.1 tag or revert this release commit.
+
+## 2026-11-15 — Fourth Refine Pass: Distill, Core Reference, and TRIGGERS.md Declutter
+
+- **Decision:** Formalize `refine/distill.md` as the fourth refine pass alongside Validate, Enhance, and Review. Add `references/ver-core.md` as the universal single-page reference for the VER loop. Retire and delete redundant `TRIGGERS.md`.
+- **Rationale:** 
+  - `distill.md` operationalizes the pattern of taking external material (articles, guides, examples) and compressing them into VER-native references with deduplication and verification gates.
+  - `ver-core.md` provides an earned, one-page reference summarizing all loop rules, hard gates, and anti-patterns for quick lookup.
+  - `TRIGGERS.md` was an early static lookup table that duplicated the Task Router in `AGENTS.md` and caused dual-source-of-truth maintenance friction.
+- **Alternatives rejected:**
+  - Keeping `TRIGGERS.md` alongside `AGENTS.md`: rejected due to redundant maintenance and inevitable drift.
+  - Leaving `distill.md` untracked or outside the formal refine pass list: rejected because Invariant #9 requires all refine-pass additions to be recorded.
+- **Amended invariants:** #9 — refine-pass names expanded to include `Distill`.
+- **Rollback plan:** To undo: remove `refine/distill.md` and `references/ver-core.md`, restore `TRIGGERS.md`, revert Invariant #9, and update `CONTEXT.md`.
+
+## 2026-11-15 — Humanized simplification comment: ponytail: renamed to ceiling:
+
+- **Decision:** Rename the comment convention for deliberate simplifications from `ponytail:` to `ceiling:`.
+- **Rationale:** While the Ponytail ladder remains the underlying 7-rung framework name, application code is read by external developers, auditors, and clients who do not need internal framework jargon. `ceiling:` directly expresses the required information (the operational ceiling and upgrade path), consumes 1 token across all modern tokenizers, and carries no negative code smell connotations in automated review.
+- **Alternatives rejected:** `shortcut:` (perceived as tech debt or sloppiness in audits), `tradeoff:` (2 tokens, less explicit about scale limit), `hack:` (triggers security/linter warnings).
+- **Rollback plan:** To undo: replace `ceiling:` back with `ponytail:` in `references/ponytail-ladder.md`, `phases/engineer.md`, and `refine/enhance.md`.
+
+## 2026-11-15 — Contract-First Evolution: The Three Traps, Execution Slices, and --hook installer
+
+- **Decision:** Enhance the core loop across three dimensions: (1) Add The Three Traps check to `phases/visualize.md` for sensitive surfaces and multi-agent handoffs; (2) Add Execution Slices (Contract ➔ Implementation ➔ Integration) and Context Budget rules to `phases/engineer.md` for changes >2 files; (3) Add a zero-dependency, append-only git pre-commit hook installer (`ver-rules --hook [dir]`) in `bin/ver.js`.
+- **Rationale:** 
+  - Prevents premature planning on ambiguous, high-risk features by forcing boundary, ceiling, and irreversibility resolution upfront.
+  - Slices complex multi-file engineering into verifiable contract checkpoints without introducing task-queue or state-machine file bloat (honoring "No GSD state machine").
+  - `ver-rules --hook` turns static gate audits into an unbypassable, automated local git gate.
+- **Alternatives rejected:** Full GSD-style `.planning/` task state machine (rejected per invariant); open-ended conversational "grill-me" loops on trivial tasks (rejected to avoid reviewer fatigue).
+- **Rollback plan:** To undo: revert changes in `bin/ver.js`, `phases/visualize.md`, `phases/engineer.md`, and `profiles/devops.md`.
+
+## 2026-11-15 — Cross-Domain Governance: Dual Truth Standard and Bounded Undo
+
+- **Decision:** Extend V.E.R. beyond software and digital content creation to govern real-world implementation deliverables, interventions, and procedures (initiating with `@policy` and `@research` profiles and a facilities commissioning walkthrough). Override Invariant #6 to establish a dual execution standard: current-session code execution remains mandatory for software and scripts, while observed physical/field execution or inspecting an authoritative, dated execution record is the standard for non-code interventions. Clarify Invariant #13: when complete physical or institutional reversal is unavailable, the mandatory `To undo:` line requires the Three-Part Bounded Undo (responsible authority, concrete mitigation/suspension steps, and disclosed irreversible residual effects). Update `INVARIANTS.md` and `CONTEXT.md` in lockstep.
+- **Rationale:** 
+  - V.E.R.'s core principles (See it, Build it, Ship it; Karpathy principles; Ponytail ladder; hard gates) apply universally to engineering, governance, empirical research, and physical commissioning.
+  - In non-software domains, requiring command-line exit code 0 forces artificial scripts or simulated outputs, violating the spirit of "do not ship a lie". Conversely, abolishing code execution for software would cause regression. The dual standard preserves uncompromising rigor in software while recognizing authoritative execution evidence in physical and institutional domains.
+  - Real-world interventions (e.g., enacted civic policies, published research, physical equipment installations) cannot be rolled back atomically via `git revert`. Defining the Three-Part Bounded Undo ensures accountability without requiring impossible reversal.
+- **Alternatives rejected:**
+  - Profiles-only addition without invariant override: rejected because Invariant #6 and Gate 2 would still statically demand terminal command execution, trapping non-code domains in fake script execution.
+  - Relaxing software test requirements: rejected because running code in the current session remains the sole truth for software.
+  - Creating job-title persona profiles (CEO, HR, PM): rejected to avoid profile bloat and roleplay; V.E.R. profiles govern artifact disciplines, while institutional authorities sign off.
+- **Amended invariants:** #6 — dual truth standard (code execution for software; observed execution or authoritative records for real-world interventions); #13 — Three-Part Bounded Undo when complete reversal is unavailable.
+- **Rollback plan:** To undo: revert this entry in `DECISIONS.md`, restore Invariants #6 and #13 in `INVARIANTS.md`, revert `CONTEXT.md`, and remove `@policy` and `@research` profiles.

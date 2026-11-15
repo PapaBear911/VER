@@ -156,6 +156,17 @@ test('uninstall: agent imports and cursor rule removed', () => {
   assert.strictEqual(claudeRestored, USER_RULE);
 });
 
+test('check: global install dir passes contracts with its own copied gates', () => {
+  const fakeHome = tmp();
+  const env = { HOME: fakeHome, USERPROFILE: fakeHome };
+  const globalDir = path.join(fakeHome, '.claude', 'ver');
+  runEnv(fakeHome, env, '--global');
+  assert.ok(
+    runEnv(globalDir, env, '--check', globalDir).includes('All configured static checks passed')
+  );
+  runEnv(fakeHome, env, '--uninstall', '--global');
+});
+
 test('global install and uninstall', () => {
   const fakeHome = tmp();
   const env = { HOME: fakeHome, USERPROFILE: fakeHome };
@@ -267,4 +278,136 @@ test('router: every rule path AGENTS.md points at exists on disk', () => {
     assert.ok(fs.existsSync(path.join(ROOT, rel)), `AGENTS.md points at missing path: ${rel}`);
   }
 });
+
+test('uninstall: a pre-existing empty file is restored empty, not deleted', () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'AGENTS.md'), '');
+  run(dir, '--project');
+  run(dir, '--uninstall', '--project', dir);
+  assert.ok(fs.existsSync(path.join(dir, 'AGENTS.md')), 'pre-existing empty AGENTS.md was deleted');
+  assert.strictEqual(fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8'), '');
+});
+
+test('check: fails contracts when the project ships no ver-gates of its own', () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'AGENTS.md'), USER_RULE);
+  assert.throws(() => run(dir, '--check', dir), /Gate: contracts/, 'audited the package bundle, not the project');
+});
+
+test('uninstall: manifest paths outside the project are never pruned', () => {
+  const parent = tmp();
+  const dir = path.join(parent, 'project');
+  fs.mkdirSync(path.join(dir, '.ver'), { recursive: true });
+  const victim = path.join(parent, 'victim');
+  fs.mkdirSync(victim);
+  fs.writeFileSync(
+    path.join(dir, '.ver', 'ver-manifest.json'),
+    JSON.stringify({
+      version: 1,
+      files: {
+        'ghost.txt': { orig: null, hash: null },
+        'nested/../../victim/ghost.txt': { orig: null, hash: null },
+      },
+    })
+  );
+  run(dir, '--uninstall', '--project', dir);
+  assert.ok(fs.existsSync(victim), 'a directory outside the project was pruned');
+});
+
+test('install: a user comment that merely starts like a marker does not suppress install', () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'AGENTS.md'), `<!-- VER note to self -->\n${USER_RULE}`);
+  run(dir, '--project');
+  const out = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8');
+  assert.ok(out.startsWith('<!-- VER v'), 'block not prepended');
+  assert.ok(out.includes('note to self'), 'user content destroyed');
+});
+
+test('package: bin name avoids collisions with shell builtins', () => {
+  const bin = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).bin;
+  const names = Object.keys(bin);
+  assert.ok(!names.includes('ver'), '"ver" is shadowed by the cmd.exe builtin on Windows');
+  for (const name of names) {
+    assert.ok(fs.existsSync(path.join(ROOT, bin[name])), `missing bin target for ${name}: ${bin[name]}`);
+  }
+});
+
+test('hook: installs and appends pre-commit hook safely', () => {
+  const dir = tmp();
+  // Failure if no .git
+  assert.throws(() => run(dir, '--hook', dir), /Not a git repository/);
+
+  // Success on git repo
+  const gitDir = path.join(dir, '.git');
+  fs.mkdirSync(gitDir, { recursive: true });
+  const out1 = run(dir, '--hook', dir);
+  assert.ok(out1.includes('Created .git/hooks/pre-commit'), 'did not create hook');
+  const hookPath = path.join(gitDir, 'hooks', 'pre-commit');
+  assert.ok(fs.existsSync(hookPath), 'hook file does not exist');
+  const content1 = fs.readFileSync(hookPath, 'utf8');
+  assert.ok(content1.includes('ver-rules --check'), 'hook missing audit command');
+
+  // Repeat call is idempotent / skips
+  const out2 = run(dir, '--hook', dir);
+  assert.ok(out2.includes('already includes'), 'repeat hook call did not skip');
+
+  // Appends to existing non-VER hook without overwriting user script
+  const dir2 = tmp();
+  const gitDir2 = path.join(dir2, '.git', 'hooks');
+  fs.mkdirSync(gitDir2, { recursive: true });
+  fs.writeFileSync(path.join(gitDir2, 'pre-commit'), '#!/bin/sh\necho "existing user hook"\n');
+  const out3 = run(dir2, '--hook', dir2);
+  assert.ok(out3.includes('Appended V.E.R. audit'), 'did not append to existing hook');
+  const content3 = fs.readFileSync(path.join(gitDir2, 'pre-commit'), 'utf8');
+  assert.ok(content3.includes('existing user hook'), 'overwrote existing user hook');
+  assert.ok(content3.includes('ver-rules --check'), 'did not append audit check');
+});
+
+test('cross-domain profiles: policy and research exist and follow profile contract', () => {
+  for (const name of ['policy', 'research']) {
+    const file = path.join(ROOT, 'profiles', `${name}.md`);
+    assert.ok(fs.existsSync(file), `missing profiles/${name}.md`);
+    const content = fs.readFileSync(file, 'utf8');
+    assert.ok(content.includes('Adds to Visualize'), `${name} missing Adds to Visualize`);
+    assert.ok(content.includes('Adds to Engineer'), `${name} missing Adds to Engineer`);
+    assert.ok(content.includes('Adds to Release'), `${name} missing Adds to Release`);
+    assert.ok(content.includes('Anti-patterns'), `${name} missing Anti-patterns`);
+    assert.ok(content.includes('Disambiguation:'), `${name} missing Disambiguation section`);
+  }
+});
+
+test('cross-domain routing: AGENTS.md routes policy and research and maintains size contract', () => {
+  const lines = AGENTS.split('\n').length;
+  assert.ok(lines < 110, `AGENTS.md is ${lines} lines (ceiling is 110)`);
+  assert.ok(AGENTS.includes('policy.md'), 'AGENTS.md router missing policy.md');
+  assert.ok(AGENTS.includes('research.md'), 'AGENTS.md router missing research.md');
+  assert.ok(AGENTS.includes('Action disambiguation:'), 'AGENTS.md missing action disambiguation guidance');
+});
+
+test('cross-domain install: project install creates policy and research profiles', () => {
+  const dir = tmp();
+  run(dir, '--project');
+  assert.ok(fs.existsSync(path.join(dir, 'profiles', 'policy.md')), 'profiles/policy.md not installed');
+  assert.ok(fs.existsSync(path.join(dir, 'profiles', 'research.md')), 'profiles/research.md not installed');
+  assert.ok(run(dir, '--check', dir).includes('All configured static checks passed'));
+  run(dir, '--uninstall', '--project', dir);
+  assert.strictEqual(fs.existsSync(path.join(dir, 'profiles', 'policy.md')), false);
+  assert.strictEqual(fs.existsSync(path.join(dir, 'profiles', 'research.md')), false);
+});
+
+test('invariants and gates: dual truth standard and Three-Part Bounded Undo contracts hold', () => {
+  const invariants = fs.readFileSync(path.join(ROOT, 'INVARIANTS.md'), 'utf8');
+  assert.ok(invariants.includes('Running code or observed execution is the only truth'), 'Invariant 6 not updated');
+  assert.ok(invariants.includes('Three-Part Bounded Undo'), 'Invariant 13 not updated');
+
+  const runGate = fs.readFileSync(path.join(ROOT, 'ver-gates', 'run-before-done', 'GATE.md'), 'utf8');
+  assert.ok(runGate.includes('For Software and Analysis Code (Mandatory)'), 'run-before-done missing software rule');
+  assert.ok(runGate.includes('For Real-World Interventions, Procedures, and Physical Deliverables (Mandatory)'), 'run-before-done missing cross-domain rule');
+
+  const deployGate = fs.readFileSync(path.join(ROOT, 'ver-gates', 'deploy-aware', 'GATE.md'), 'utf8');
+  assert.ok(deployGate.includes('Three-Part Bounded Undo'), 'deploy-aware missing Three-Part Bounded Undo');
+  assert.ok(deployGate.includes('Authorized Activation & Handoff'), 'deploy-aware missing activation check');
+});
+
+
 
