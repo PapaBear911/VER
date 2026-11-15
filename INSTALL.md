@@ -258,27 +258,28 @@ npm install -g @papabear911/ver@latest   # if installed globally
 npm install -D @papabear911/ver@latest   # if installed in project
 ```
 
-### Refreshing Rules
+### Refreshing Rules & Coordinated Updates
 
-To cleanly upgrade an existing installation to a newer release:
+Because `ver-rules` enforces **Append. Never replace**, running `ver-rules --project` over an existing installation safely copies any newly released files (such as `profiles/policy.md` and `profiles/research.md`) while preserving all existing files and user modifications.
 
-1. **Automatic (recommended):** Use `ver-rules --uninstall` to remove unmodified recorded files, then
-   re-run the installer:
+For older installations where rule files are already present, updating shared base rules (`phases/`, `ver-gates/`, `references/`) requires a coordinated update path:
 
+1. **Automatic Refresh (Recommended):**
+   If you have not hand-modified the generated rule files, uninstall and re-install:
    ```bash
-   # In project repo
    ver-rules --uninstall
    npx @papabear911/ver@latest ver-rules --project
-
-   # In user global (~/.claude/ver)
-   ver-rules --uninstall --global
-   npx @papabear911/ver@latest ver-rules --global
    ```
+   This uninstalls the tracked files whose hashes match the manifest, then places the latest release files. User-owned content in `AGENTS.md` and custom files remain completely untouched.
 
-2. **Manual:** If you customized rules directly or use git clone:
-   - Update rule directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`).
-   - In any config file with marked blocks, update the version number and text between
-     `<!-- VER v... — begin -->` and `<!-- VER v... — end -->`.
+2. **Selective / Custom Update:**
+   If you have added custom project rules inside `phases/` or `profiles/`:
+   - Run `npx @papabear911/ver@latest ver-rules --project` to copy newly added profile files automatically.
+   - Inspect upstream changes to shared guides (`phases/`, `ver-gates/`, `INVARIANTS.md`) using git diff:
+     ```bash
+     git diff origin/main -- phases/ ver-gates/ INVARIANTS.md
+     ```
+   - Port the dual truth standard (Invariant 6) and Three-Part Bounded Undo (Invariant 13) into your preserved rule copies without clobbering your local project conventions.
 
 ---
 

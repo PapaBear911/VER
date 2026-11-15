@@ -95,7 +95,14 @@ Agent (Release): Rollback: revert this commit. vision-log.md: one learning logge
                                         <-- HARD GATE 3
 ```
 
-A greeting or a pure question ("what is the VER loop?") skips all of this — VER answers directly and loads nothing. Full worked example with code and a threat model: [`examples/walkthrough.md`](examples/walkthrough.md).
+A greeting or a pure question ("what is the VER loop?") skips all of this — VER answers directly and loads nothing. 
+
+Full worked examples across domains:
+- **Software Engineering:** [`examples/walkthrough.md`](examples/walkthrough.md) (Password reset flow with security threat model).
+- **Policy Making:** [`examples/policy-walkthrough.md`](examples/policy-walkthrough.md) (8-week library evening-hours pilot with consultation and suspension triggers).
+- **Scientific Research:** [`examples/research-walkthrough.md`](examples/research-walkthrough.md) (Tutoring attendance & course completion observational study with independent rerun).
+- **Physical Commissioning:** [`examples/commissioning-walkthrough.md`](examples/commissioning-walkthrough.md) (Emergency generator site acceptance load test under shared base rules).
+- **Cross-Domain Candidate Assessment:** [`references/cross-domain-candidates.md`](references/cross-domain-candidates.md).
 
 ### The Golden Rule: Append, Never Replace
 
@@ -170,6 +177,8 @@ Before Phase 1 starts, a 15-line router reads the task description, detects doma
 | devops | [`profiles/devops.md`](profiles/devops.md) | deploy, infra, config, terraform, container, CI, pipeline |
 | testing | [`profiles/testing.md`](profiles/testing.md) | test, spec, coverage, mock, fixture |
 | docs | [`profiles/docs.md`](profiles/docs.md) | readme, doc, comment, changelog, tutorial |
+| policy | [`profiles/policy.md`](profiles/policy.md) | ordinance, governance, regulation, pilot, institutional rule |
+| research | [`profiles/research.md`](profiles/research.md) | study, cohort, trial, hypothesis, methodology, empirical |
 
 - **Manual Override:** Prefix tasks with `@domain` or `@domain+domain` (e.g. `@security+ux add password reset flow`).
 - **Stacking Rule:** Profiles stack. When gates conflict or overlap, **the stricter gate wins**.

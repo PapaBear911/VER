@@ -23,8 +23,8 @@ Clause served: **See it. Build it. Ship it. Every release feeds the next vision.
 5. Climb the Ponytail ladder from rung 1 upward and stop at the first rung that holds.
    YAGNI first, followed by existing codebase patterns, standard library, platform features, and installed dependencies before adding code.
 
-6. Running code is the only truth.
-   Every claim of functionality requires executed command output in the current session; unrun tests remain hypotheses.
+6. Running code or observed execution is the only truth.
+   Code requires executed command output in this session; non-code deliverables require authoritative, dated execution records; unverified claims remain hypotheses.
 
 7. Stop after two consecutive failures on the same gate.
    Do not iterate a third attempt; two failures mean the upstream Vision is flawed and must be re-scoped in Phase 1.
@@ -33,7 +33,7 @@ Clause served: **See it. Build it. Ship it. Every release feeds the next vision.
    Prepend idempotent versioned comment blocks or use import syntax to preserve existing user rules and files.
 
 9. Every release note must end with a mandatory rollback line.
-   Document the exact revert command or process (`To undo: [command]`) required to reverse the release completely.
+   Document the exact revert command (`To undo: [command]`) or the Three-Part Bounded Undo (responsible authority, mitigation steps, residual effects) when complete reversal is unavailable.
 
 10. Record one concrete learning per release to close the loop.
     Log exactly one learning in `vision-log.md`; recurring lessons must graduate to enforceable rules in `INVARIANTS.md` or `ver-gates/`.

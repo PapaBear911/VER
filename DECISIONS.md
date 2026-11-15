@@ -220,3 +220,17 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
   - `ver-rules --hook` turns static gate audits into an unbypassable, automated local git gate.
 - **Alternatives rejected:** Full GSD-style `.planning/` task state machine (rejected per invariant); open-ended conversational "grill-me" loops on trivial tasks (rejected to avoid reviewer fatigue).
 - **Rollback plan:** To undo: revert changes in `bin/ver.js`, `phases/visualize.md`, `phases/engineer.md`, and `profiles/devops.md`.
+
+## 2026-11-15 — Cross-Domain Governance: Dual Truth Standard and Bounded Undo
+
+- **Decision:** Extend V.E.R. beyond software and digital content creation to govern real-world implementation deliverables, interventions, and procedures (initiating with `@policy` and `@research` profiles and a facilities commissioning walkthrough). Override Invariant #6 to establish a dual execution standard: current-session code execution remains mandatory for software and scripts, while observed physical/field execution or inspecting an authoritative, dated execution record is the standard for non-code interventions. Clarify Invariant #13: when complete physical or institutional reversal is unavailable, the mandatory `To undo:` line requires the Three-Part Bounded Undo (responsible authority, concrete mitigation/suspension steps, and disclosed irreversible residual effects). Update `INVARIANTS.md` and `CONTEXT.md` in lockstep.
+- **Rationale:** 
+  - V.E.R.'s core principles (See it, Build it, Ship it; Karpathy principles; Ponytail ladder; hard gates) apply universally to engineering, governance, empirical research, and physical commissioning.
+  - In non-software domains, requiring command-line exit code 0 forces artificial scripts or simulated outputs, violating the spirit of "do not ship a lie". Conversely, abolishing code execution for software would cause regression. The dual standard preserves uncompromising rigor in software while recognizing authoritative execution evidence in physical and institutional domains.
+  - Real-world interventions (e.g., enacted civic policies, published research, physical equipment installations) cannot be rolled back atomically via `git revert`. Defining the Three-Part Bounded Undo ensures accountability without requiring impossible reversal.
+- **Alternatives rejected:**
+  - Profiles-only addition without invariant override: rejected because Invariant #6 and Gate 2 would still statically demand terminal command execution, trapping non-code domains in fake script execution.
+  - Relaxing software test requirements: rejected because running code in the current session remains the sole truth for software.
+  - Creating job-title persona profiles (CEO, HR, PM): rejected to avoid profile bloat and roleplay; V.E.R. profiles govern artifact disciplines, while institutional authorities sign off.
+- **Amended invariants:** #6 — dual truth standard (code execution for software; observed execution or authoritative records for real-world interventions); #13 — Three-Part Bounded Undo when complete reversal is unavailable.
+- **Rollback plan:** To undo: revert this entry in `DECISIONS.md`, restore Invariants #6 and #13 in `INVARIANTS.md`, revert `CONTEXT.md`, and remove `@policy` and `@research` profiles.
