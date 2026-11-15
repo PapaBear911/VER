@@ -16,7 +16,13 @@
     "refine",
     "references",
     "ver-gates",
-    "docs"
+    "BOOTSTRAP.md",
+    "CHANGELOG.md",
+    "CONTEXT.md",
+    "DECISIONS.md",
+    "INSTALL.md",
+    "INVARIANTS.md",
+    "examples"
   ],
   "engines": {
     "node": ">=18"
@@ -27,5 +33,13 @@
     "prepublishOnly": "npm test"
   },
   "license": "MIT",
-  "author": "Ver Sangil"
+  "author": "Ver Sangil",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PapaBear911/VER.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PapaBear911/VER/issues"
+  },
+  "homepage": "https://github.com/PapaBear911/VER#readme"
 }

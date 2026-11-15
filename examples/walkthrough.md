@@ -1,6 +1,6 @@
 # Walkthrough — Add Password Reset
 
-A bounded example of VER v2.1.2 routing a sensitive change. This is illustrative pseudocode;
+A bounded example of VER v2.2.0 routing a sensitive change. This is illustrative pseudocode;
 match the actual repository's language and conventions before applying it.
 
 ---

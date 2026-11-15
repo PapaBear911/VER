@@ -34,22 +34,22 @@ One command installs the full rule set — `AGENTS.md` plus `profiles/`, `phases
 `references/`, and `ver-gates/` — with no clone and no manual copying:
 
 ```bash
-npx @papabear911/ver ver-rules --project
+npx @papabear911/ver --project
 # On Windows, `ver` is a cmd.exe builtin that shadows PATH; the package bin is named
 # `ver-rules`. All `npx` commands above explicitly invoke `ver-rules` so they work
 # regardless of how many bins the package ships.
 ```
 
-Three install paths, one package:
+Install and maintenance commands
 
 | Path | Command | Writes to |
 |---|---|---|
-| **Project** | `npx @papabear911/ver ver-rules --project [dir]` | `dir/.ver-rules/` — rule dirs, docs, manifest, plus root `AGENTS.md` |
-| **Update** | `npx @papabear911/ver ver-rules --update [dir]` | `dir/.ver-rules/` — migrates legacy files, updates unmodified rules |
-| **Git Hook** | `npx @papabear911/ver ver-rules --hook [dir]` | `.git/hooks/pre-commit` — appends automated audit hook |
-| **User-global** | `npx @papabear911/ver ver-rules --global` | `~/.ver-rules/`, plus an `@~/.ver-rules/AGENTS.md` import in `~/.claude/CLAUDE.md` |
-| **Global Update** | `npx @papabear911/ver ver-rules --update --global` | `~/.ver-rules/` — updates unmodified global rules |
-| **Agent config** | `npx @papabear911/ver ver-rules --agent <name>` | the one config file that agent needs (see § 3) |
+| **Project** | `npx @papabear911/ver --project [dir]` | `dir/.ver-rules/` — rule dirs, docs, manifest, plus root `AGENTS.md` |
+| **Update** | `npx @papabear911/ver --update [dir]` | `dir/.ver-rules/` — migrates legacy files, updates unmodified rules |
+| **Git Hook** | `npx @papabear911/ver --hook [dir]` | `.git/hooks/pre-commit` — appends automated audit hook |
+| **User-global** | `npx @papabear911/ver --global` | `~/.ver-rules/`, plus an `@~/.ver-rules/AGENTS.md` import in `~/.claude/CLAUDE.md` |
+| **Global Update** | `npx @papabear911/ver --update --global` | `~/.ver-rules/` — updates unmodified global rules |
+| **Agent config** | `npx @papabear911/ver --agent <name>` | the one config file that agent needs (see § 3) |
 
 Prefer a permanent CLI? Either works identically:
 
@@ -63,8 +63,8 @@ npm install -D @papabear911/ver && npx -p @papabear911/ver ver-rules --project
   subfolder (or `~/.ver-rules/` for global installs), preventing repo root clutter.
 - **Legacy migration:** If an older VER installation with root folders (`profiles/`, `phases/`,
   `refine/`, `references/`, `ver-gates/`, `ver/`, `.ver/`) is present, running `--update` or `--project`
-  automatically moves them into `.ver-rules/` and updates pointers. Existing project directories (like `docs/`)
-  are never moved.
+  automatically moves them into `.ver-rules/` and updates pointers. Untracked files and conflicting destinations stay in place.
+  Customized legacy files are retained at their original paths as well.
 - **If no `AGENTS.md` exists:** VER creates `AGENTS.md` pointing to `.ver-rules/AGENTS.md`.
 - **If `AGENTS.md` already existed:** read § 4. The installer never overwrites it — your file keeps
   its content intact, VER's rule is written to `.ver-rules/AGENTS.md`, and a marked block pointer is
@@ -84,9 +84,8 @@ For the full reference set by hand:
 
 ```bash
 git clone https://github.com/PapaBear911/VER.git /tmp/ver-src
-mkdir -p .ver-rules
-cp /tmp/ver-src/AGENTS.md .ver-rules/
-cp -r /tmp/ver-src/profiles /tmp/ver-src/phases /tmp/ver-src/refine /tmp/ver-src/references /tmp/ver-src/ver-gates /tmp/ver-src/docs .ver-rules/
+cp /tmp/ver-src/AGENTS.md .
+cp -r /tmp/ver-src/profiles /tmp/ver-src/phases /tmp/ver-src/refine /tmp/ver-src/references /tmp/ver-src/ver-gates .
 ```
 
 ---
@@ -122,7 +121,7 @@ automatically.
 Cursor reads `AGENTS.md` natively at the project root.
 
 - **Nothing else to do** if you use the native rule.
-- To add an explicit Cursor rule, run `npx @papabear911/ver ver-rules --agent cursor`. It writes
+- To add an explicit Cursor rule, run `npx @papabear911/ver --agent cursor`. It writes
   `.cursor/rules/ver.mdc` with required YAML frontmatter. Existing `.mdc` content is preserved.
 - **If `.cursorrules` exists (legacy):** leave it. Cursor reads both. This file still works but
   is deprecated.
@@ -228,7 +227,7 @@ Run the built-in checker to verify all 6 gates, contracts, manifest files, and m
 ```bash
 ver-rules --check           # Audit current project directory
 ver-rules --check [dir]     # Audit target directory
-npx @papabear911/ver ver-rules --check
+npx @papabear911/ver --check
 ```
 
 ### Conversational Verification
@@ -269,7 +268,7 @@ npm install -D @papabear911/ver@latest   # if installed in project
 
 ### Refreshing Rules & Coordinated Updates
 
-Because `ver-rules` enforces **Append. Never replace**, running `ver-rules --project` over an existing installation safely copies any newly released files (such as `profiles/policy.md` and `profiles/research.md`) while preserving all existing files and user modifications.
+Run `npx @papabear911/ver@latest --update` to add new rules and refresh rules whose hashes still match the recorded install. Use `npx @papabear911/ver@latest --update --global` for a global installation.
 
 For older installations where rule files are already present, updating shared base rules (`phases/`, `ver-gates/`, `references/`) requires a coordinated update path:
 
@@ -277,13 +276,13 @@ For older installations where rule files are already present, updating shared ba
    If you have not hand-modified the generated rule files, uninstall and re-install:
    ```bash
    ver-rules --uninstall
-   npx @papabear911/ver@latest ver-rules --project
+   npx @papabear911/ver@latest --project
    ```
    This uninstalls the tracked files whose hashes match the manifest, then places the latest release files. User-owned content in `AGENTS.md` and custom files remain completely untouched.
 
 2. **Selective / Custom Update:**
    If you have added custom project rules inside `phases/` or `profiles/`:
-   - Run `npx @papabear911/ver@latest ver-rules --project` to copy newly added profile files automatically.
+   - Run `npx @papabear911/ver@latest --project` to copy newly added profile files automatically.
    - Inspect upstream changes to shared guides (`phases/`, `ver-gates/`, `INVARIANTS.md`) using git diff:
      ```bash
      git diff origin/main -- phases/ ver-gates/ INVARIANTS.md

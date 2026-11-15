@@ -422,7 +422,7 @@ test('update: updates unmodified files, creates new profiles, and preserves user
   const crypto = require('crypto');
   const oldHash = crypto.createHash('sha256').update(fs.readFileSync(oldPhaseFile)).digest('hex');
   mf.files[path.join('.ver-rules', 'phases', 'visualize.md').replace(/\\/g, '/')] = { orig: null, hash: oldHash };
-  
+
   // 3. New missing file is created:
   const policyFile = path.join(dir, '.ver-rules', 'profiles', 'policy.md');
   fs.unlinkSync(policyFile);
@@ -463,14 +463,14 @@ test('migration: legacy root files and ver/AGENTS.md migrated into .ver-rules', 
   fs.writeFileSync(path.join(dir, '.ver', 'ver-manifest.json'), JSON.stringify({
     version: 1,
     files: {
-      'profiles/custom.md': { orig: null, hash: 'abc' },
-      'ver/AGENTS.md': { orig: null, hash: 'def' },
-      'ver-gates/spec-before-edit/GATE.md': { orig: null, hash: 'ghi' }
+      'profiles/custom.md': { orig: null, hash: '68eac037b6663454a6bf066eb176a47eb03e6fab571dd87d981d1bce7622611c' },
+      'ver/AGENTS.md': { orig: null, hash: '024cfd89b50456703c02d27decdee39780125227cf81fd614b4f0b25720e4c20' },
+      'ver-gates/spec-before-edit/GATE.md': { orig: null, hash: '79e5d3e30389f02f90c101f08f03b17da6c99019689d26e280ad680ded1860c3' }
     }
   }, null, 2) + '\n');
 
   fs.writeFileSync(path.join(dir, 'AGENTS.md'), '<!-- VER v2.1.2 — begin -->\nRead ver/AGENTS.md. Apply the VER loop to every task.\n<!-- VER v2.1.2 — end -->\n\n# User Rules\n');
-  
+
   // Set up a user project docs directory that should NEVER be moved
   fs.mkdirSync(path.join(dir, 'docs'), { recursive: true });
   fs.writeFileSync(path.join(dir, 'docs', 'my-project-doc.md'), '# Project Documentation\n');
@@ -550,4 +550,22 @@ test('global update on a fresh home installs rules at the documented location', 
   runEnv(dir, env, '--update', '--global');
   assert.ok(fs.existsSync(path.join(dir, '.ver-rules', 'profiles', 'programming.md')));
   assert.match(fs.readFileSync(path.join(dir, '.claude', 'CLAUDE.md'), 'utf8'), /@~\/\.ver-rules\/AGENTS\.md/);
+});
+
+test('project paths: installer rejects a redirected rules directory', () => {
+  const dir = tmp();
+  const other = tmp();
+  fs.symlinkSync(other, path.join(dir, '.ver-rules'), 'junction');
+  assert.throws(() => run(dir, '--project'), /Command failed/);
+  assert.deepStrictEqual(fs.readdirSync(other), []);
+});
+
+test('uninstall: preserves an unrelated legacy manifest when a current manifest exists', () => {
+  const dir = tmp();
+  const file = path.join(dir, '.ver', 'ver-manifest.json');
+  fs.mkdirSync(path.dirname(file));
+  fs.writeFileSync(file, '{"project":"user data"}');
+  run(dir, '--project');
+  run(dir, '--uninstall');
+  assert.strictEqual(fs.readFileSync(file, 'utf8'), '{"project":"user data"}');
 });
