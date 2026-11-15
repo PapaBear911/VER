@@ -5,6 +5,23 @@ All notable changes to the V.E.R. project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-11-15
+
+### Added
+- Subfolder consolidation: All V.E.R. supporting directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`, `docs/`) and `ver-manifest.json` are now consolidated in a single `.ver-rules/` folder in projects and `~/.ver-rules/` in user global installations.
+- Manifest colocation: `ver-manifest.json` relocated from `.ver/` to `.ver-rules/ver-manifest.json`, eliminating `.ver/` folder clutter.
+- Automated legacy migration (`migrateLegacyVerFiles`): Automatically detects legacy root folders (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`, `ver/`, `.ver/`), moves them into `.ver-rules/`, updates root pointers in `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and `ver.mdc`, and prunes empty legacy directories while preserving user-owned directories (e.g., project `docs/`).
+- Update command: `ver-rules --update [dir]` and `ver-rules --update --global` for updating unmodified rules against package versions via SHA-256 manifest while preserving user customizations.
+- Documentation directory in distribution: `docs/` containing comprehensive framework documentation (`BOOTSTRAP.md`, `CONTEXT.md`, `DECISIONS.md`, `INSTALL.md`, `INVARIANTS.md`, `README.md`) installed under `.ver-rules/docs/`.
+- Cross-domain governance profiles: Added `@policy` (`profiles/policy.md`) for institutional/civic policies and `@research` (`profiles/research.md`) for empirical studies.
+- Cross-domain walkthroughs: Added `examples/policy-walkthrough.md` (library evening-hours pilot), `examples/research-walkthrough.md` (tutoring attendance study), and `examples/commissioning-walkthrough.md` (backup power unit site acceptance).
+- Cross-domain candidate assessment: Added `references/cross-domain-candidates.md` evaluating Procurement, Incident Readiness, Education, Service Ops, and Audit Remediation.
+
+### Changed
+- Invariant 6 (Dual Truth Standard): Overridden in lockstep to require terminal command execution with exit code 0 for software and analysis scripts, and observed execution or authoritative, witnessed execution/rehearsal records for real-world non-code interventions.
+- Invariant 13 (Three-Part Bounded Undo): Overridden in lockstep to codify responsible authority, active mitigation/suspension steps, and disclosed irreversible residuals when atomic physical/institutional reversal is impossible.
+- Hard Gate 2 (`ver-gates/run-before-done/GATE.md`) and Gate 3 (`ver-gates/deploy-aware/GATE.md`) updated with dual execution standards and bounded undo requirements.
+
 ## [2.1.2] - 2026-11-15
 
 ### Changed

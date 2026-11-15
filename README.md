@@ -33,9 +33,10 @@ Three installation targets are available:
 
 | Target | Command | Result |
 |---|---|---|
-| **Project** | `npx @papabear911/ver ver-rules --project [dir]` | Places `AGENTS.md` and rule directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`) |
+| **Project** | `npx @papabear911/ver ver-rules --project [dir]` | Consolidates rules, docs, and manifest into `.ver-rules/` + root `AGENTS.md` |
+| **Update** | `npx @papabear911/ver ver-rules --update [dir]` | Migrates legacy files, updates unmodified rules in `.ver-rules/` |
 | **Git Hook** | `npx @papabear911/ver ver-rules --hook [dir]` | Appends automated V.E.R. audit to `.git/hooks/pre-commit` |
-| **User-global** | `npx @papabear911/ver ver-rules --global` | Installs to `~/.claude/ver/` with an `@ver/AGENTS.md` import |
+| **User-global** | `npx @papabear911/ver ver-rules --global` | Installs to `~/.ver-rules/` with an `@~/.ver-rules/AGENTS.md` import |
 | **Agent config** | `npx @papabear911/ver ver-rules --agent <name>` | Updates configuration for `claude`, `cursor`, or `gemini` |
 
 ### Install with an AI agent (copy-paste)
@@ -49,7 +50,7 @@ Install the V.E.R. agent rule set into this project using the published npm pack
   npx @papabear911/ver ver-rules --project
 Then verify by running:
   npx @papabear911/ver ver-rules --check .
-Report the exact command output. --project creates the rule directories (profiles/, phases/, refine/, references/, ver-gates/); it skips any file that already exists and never overwrites your rules. If AGENTS.md already exists, confirm your content is preserved with a marked VER block prepended.
+Report the exact command output. --project consolidates all rule directories into .ver-rules/; it skips any file that already exists and never overwrites your rules. If AGENTS.md already exists, confirm your content is preserved with a marked VER block prepended pointing to .ver-rules/AGENTS.md.
 ```
 
 **User-global, via npm:**
@@ -57,9 +58,9 @@ Report the exact command output. --project creates the rule directories (profile
 ```text
 Install the V.E.R. agent rule set globally using the published npm package. Run:
   npx @papabear911/ver ver-rules --global
-This installs to ~/.claude/ver/ and adds an @ver/AGENTS.md import to ~/.claude/CLAUDE.md. Verify by running:
-  npx @papabear911/ver ver-rules --check ~/.claude/ver
-Report the exact command output. --global writes only into ~/.claude/ver/ and adds an @ver/AGENTS.md import to ~/.claude/CLAUDE.md; it does not touch your project files.
+This installs to ~/.ver-rules/ and adds an @~/.ver-rules/AGENTS.md import to ~/.claude/CLAUDE.md. Verify by running:
+  npx @papabear911/ver ver-rules --check ~/.ver-rules
+Report the exact command output. --global writes only into ~/.ver-rules/ and adds an @~/.ver-rules/AGENTS.md import to ~/.claude/CLAUDE.md; it does not touch your project files.
 ```
 
 **Via GitHub (no npm):**
@@ -67,8 +68,9 @@ Report the exact command output. --global writes only into ~/.claude/ver/ and ad
 ```text
 Install the V.E.R. agent rule set from GitHub without npm. Run:
   git clone https://github.com/PapaBear911/VER.git /tmp/ver-src
-  cp /tmp/ver-src/AGENTS.md .
-  cp -r /tmp/ver-src/profiles /tmp/ver-src/phases /tmp/ver-src/refine /tmp/ver-src/references /tmp/ver-src/ver-gates .
+  mkdir -p .ver-rules
+  cp /tmp/ver-src/AGENTS.md .ver-rules/
+  cp -r /tmp/ver-src/profiles /tmp/ver-src/phases /tmp/ver-src/refine /tmp/ver-src/references /tmp/ver-src/ver-gates /tmp/ver-src/docs .ver-rules/
 Do not overwrite any file that already exists — if any target already exists, stop and report before copying. Report exactly which files were created.
 ```
 

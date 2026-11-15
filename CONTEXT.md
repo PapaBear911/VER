@@ -10,7 +10,7 @@ The tagline is frozen. It is the constitution, not decoration: every rule, gate,
 
 ## Facts
 
-- **Version:** 2.1.2 — the npm + installer-CLI release
+- **Version:** 2.2.0 — cross-domain governance profiles, dual truth standard, and .ver-rules subfolder consolidation
 - **Author:** Ver Sangil
 - **License:** MIT
 - **Root file:** `AGENTS.md` — universal rule; delivered via `@papabear911/ver` with `ver-rules` installer CLI. Still no daemon or inference-time runtime.
@@ -67,7 +67,8 @@ Optional, four passes, each one file:
 - **Router shape:** domain keyword table and `@domain` / `@domain+domain` syntax; profile additions are allowed, syntax changes are not.
 - **Always-active rules:** Karpathy principles and the 7-rung Ponytail ladder.
 - **Delivery:** npm package `@papabear911/ver` with a one-shot `ver-rules` CLI; no daemon or inference-time runtime.
-- **Install paths:** project (`ver-rules --project [dir]`), user-global (`ver-rules --global`), or agent config (`ver-rules --agent claude|cursor|gemini`).
+- **Install paths:** project (`ver-rules --project [dir]`), update (`ver-rules --update [dir]`), git hook (`ver-rules --hook [dir]`), user-global (`ver-rules --global`), or agent config (`ver-rules --agent claude|cursor|gemini`).
+- **Rule layout:** Supporting rule directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`, `docs/`) and `ver-manifest.json` are consolidated in `.ver-rules/` (`~/.ver-rules/` globally). Legacy root VER folders are automatically migrated into `.ver-rules/`.
 - **Installation:** append, never replace any existing agent configuration or user content.
 
 ## Stability commitment (1.x)
