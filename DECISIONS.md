@@ -203,3 +203,10 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
   - Leaving `distill.md` untracked or outside the formal refine pass list: rejected because Invariant #9 requires all refine-pass additions to be recorded.
 - **Amended invariants:** #9 — refine-pass names expanded to include `Distill`.
 - **Rollback plan:** To undo: remove `refine/distill.md` and `references/ver-core.md`, restore `TRIGGERS.md`, revert Invariant #9, and update `CONTEXT.md`.
+
+## 2026-11-15 — Humanized simplification comment: ponytail: renamed to ceiling:
+
+- **Decision:** Rename the comment convention for deliberate simplifications from `ponytail:` to `ceiling:`.
+- **Rationale:** While the Ponytail ladder remains the underlying 7-rung framework name, application code is read by external developers, auditors, and clients who do not need internal framework jargon. `ceiling:` directly expresses the required information (the operational ceiling and upgrade path), consumes 1 token across all modern tokenizers, and carries no negative code smell connotations in automated review.
+- **Alternatives rejected:** `shortcut:` (perceived as tech debt or sloppiness in audits), `tradeoff:` (2 tokens, less explicit about scale limit), `hack:` (triggers security/linter warnings).
+- **Rollback plan:** To undo: replace `ceiling:` back with `ponytail:` in `references/ponytail-ladder.md`, `phases/engineer.md`, and `refine/enhance.md`.

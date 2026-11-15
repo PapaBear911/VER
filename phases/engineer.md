@@ -82,12 +82,12 @@ After every earlier rung fails: implement exactly the approved Vision, no more.
 - Never simplify away trust-boundary validation, data-loss handling, security, accessibility, or
   anything the approved Vision explicitly requires.
 
-### `ponytail:` comment convention
+### `ceiling:` comment convention
 
 Mark deliberate simplifications with their ceiling and upgrade path:
 
 ```python
-# ponytail: sorts up to ~100k rows in memory — use DB ORDER BY beyond that
+# ceiling: sorts up to ~100k rows in memory — use DB ORDER BY beyond that
 rows.sort(key=lambda row: row.created_at)
 ```
 
@@ -140,7 +140,7 @@ When two profiles add gates to this phase, the stricter gate wins.
 - [ ] Read-first complete; no API/signature/import asserted from memory.
 - [ ] All seven rungs considered in order; chosen design uses the first that holds.
 - [ ] Approved Vision implemented; scope neither added nor silently dropped.
-- [ ] Deliberate simplifications marked with `ponytail:`.
+- [ ] Deliberate simplifications marked with `ceiling:`.
 - [ ] Profile gates for this phase completed.
 - [ ] Tests actually executed in this session; output shown.
 - [ ] Claimed behavior observed running, not inferred from reading code.

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed CLI binary from `ver` to `ver-rules` to avoid collisions with the built-in `ver` command in `cmd.exe` on Windows.
 - Narrowed marker detection to `/<!-- VER v\d/` so user comments containing `<!-- VER ` do not abort installation.
 - Excluded local `vision-log.md` from git tracking via `.gitignore`.
+- Renamed deliberate simplification comment convention from `ponytail:` to `ceiling:` for direct, humanized code readability and 1-token brevity.
 
 ### Fixed
 - Installer now restores 0-byte pre-existing files without unlinking them during uninstall.

@@ -30,12 +30,12 @@ the one below it.
 | Add a new, unserved feature | Rung 7 | Implement only the approved behavior |
 | Add a configuration key for a fixed value | Rung 1 | Don't add it; hardcode until a real need appears |
 
-## The `ponytail:` comment
+## The `ceiling:` comment
 
 For a deliberate simplification, state the ceiling and upgrade path next to the code:
 
 ```python
-# ponytail: keeps up to ~100k rows in memory — use DB ordering when we exceed that
+# ceiling: keeps up to ~100k rows in memory — use DB ordering when we exceed that
 rows.sort(key=lambda row: row.created_at)
 ```
 
