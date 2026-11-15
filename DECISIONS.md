@@ -183,3 +183,10 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
     native npm pattern.
 - **Rollback plan:** To undo: restore `"ver": "bin/ver.js"` in `package.json`, revert `bin/ver.js`
   changes, and update `CONTEXT.md` facts.
+
+## 2026-11-15 — v2.1.2: Release packaging, CI automation, and local receipt hygiene
+
+- **Decision:** Release v2.1.2 as a patch release. Consolidate the `ver-rules` Windows CLI rename, installer safety fixes, GitHub Actions CI workflow, `package-lock.json`, native test coverage script, Keep a Changelog documentation, and explicit exclusion of local-only receipts (`vision-log.md`) via `.gitignore`.
+- **Rationale:** Patch release accurately reflects backward-compatible installer bugfixes, shell collision protection on Windows, and developer automation improvements without altering core rule syntax or the three-phase loop.
+- **Alternatives rejected:** v2.2.0 minor release (rejected to maintain conservative SemVer, as no breaking API or core router syntax changed).
+- **Rollback plan:** To undo: checkout v2.1.1 tag or revert this release commit.

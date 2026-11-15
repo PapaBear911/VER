@@ -5,22 +5,32 @@ All notable changes to the V.E.R. project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.1] - 2026-10-13
+## [2.1.2] - 2026-11-15
 
 ### Changed
 - Renamed CLI binary from `ver` to `ver-rules` to avoid collisions with the built-in `ver` command in `cmd.exe` on Windows.
 - Narrowed marker detection to `/<!-- VER v\d/` so user comments containing `<!-- VER ` do not abort installation.
+- Excluded local `vision-log.md` from git tracking via `.gitignore`.
 
 ### Fixed
 - Installer now restores 0-byte pre-existing files without unlinking them during uninstall.
-- Required `ver-gates/` to exist inside the target directory during `--check` (no silent package fallback).
+- Enforced `ver-gates/` existence inside target directory during `--check` (no silent package fallback).
 - Guarded ancestor-directory pruning against path traversal.
 
 ### Added
-- Six unit tests in `test/ver.test.js` verifying binary naming, marker detection, 0-byte restoration, and path traversal guards.
-- Local receipt log entry in `vision-log.md` with learning and next V seed.
-- Native test coverage reporting (`npm run test:coverage`) leveraging Node built-in test runner.
-- Continuous integration workflow via GitHub Actions (`.github/workflows/ci.yml`).
+- GitHub Actions CI workflow (`.github/workflows/ci.yml`) testing Node 18, 20, 22 on Ubuntu and Windows.
+- Reproducible `package-lock.json` with zero dependencies.
+- Native standard library test coverage script (`npm run test:coverage`) at 97.74% line coverage.
+- Keep a Changelog documentation (`CHANGELOG.md`).
+- Six regression tests in `test/ver.test.js`.
+
+## [2.1.1] - 2026-10-12
+
+### Added
+- Restructure agent rules and implement ownership tracking.
+- Static verification gates in `ver-gates/` (`contracts`, `file-existence`, `receipt-log`, `deploy-aware`, `run-before-done`, `spec-before-edit`).
+- Audit command: `ver-rules --check [dir]` for verifying rules, contracts, and invariants.
+- Recurring-lesson graduation (Invariant #16): `Recurs:` and `Promoted:` tags in `vision-log.md`.
 
 ## [2.1.0] - 2026-10-11
 
