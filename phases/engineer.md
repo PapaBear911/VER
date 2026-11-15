@@ -93,6 +93,22 @@ rows.sort(key=lambda row: row.created_at)
 
 Ordinary code needs no comment. A simplification with a real ceiling does.
 
+### Execution Slices (multi-file changes >2 files or >50 lines)
+
+Never edit multiple modules in one monolithic turn. Slice implementation into ordered checkpoints:
+
+1. **Slice 1 — Contract & Boundary:** Write interfaces, schemas, or failing RED contract tests.
+2. **Slice 2 — Core Implementation:** Implement the minimum working code (GREEN) with `ceiling:` comments.
+3. **Slice 3 — Integration & Wiring:** Connect callers, CLI flags, routes, or UI components.
+
+Prove each slice GREEN before touching files in the next slice. In multi-agent systems, slices form the verifiable handoff boundary between workers.
+
+### Context Budget & The "Smart Zone"
+
+Model reasoning degrades when context accumulates dozens of tool results. If an implementation approaches context limits or exceeds 15 tool executions:
+- Run narrow tests and reconcile working diff.
+- Suggest a context compact or session turn refresh before executing Phase 3 (Release).
+
 ## 3. Execution — running code is the only truth
 
 Run it in this session. Show the command and observed output.
@@ -141,6 +157,7 @@ When two profiles add gates to this phase, the stricter gate wins.
 - [ ] All seven rungs considered in order; chosen design uses the first that holds.
 - [ ] Approved Vision implemented; scope neither added nor silently dropped.
 - [ ] Deliberate simplifications marked with `ceiling:`.
+- [ ] Multi-file tasks (>2 files) executed and verified in discrete slices.
 - [ ] Profile gates for this phase completed.
 - [ ] Tests actually executed in this session; output shown.
 - [ ] Claimed behavior observed running, not inferred from reading code.

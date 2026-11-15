@@ -45,6 +45,7 @@ Three install paths, one package:
 | Path | Command | Writes to |
 |---|---|---|
 | **Project** | `npx @papabear911/ver ver-rules --project [dir]` | `dir` (default `.`) — rule dirs, plus `AGENTS.md` |
+| **Git Hook** | `npx @papabear911/ver ver-rules --hook [dir]` | `.git/hooks/pre-commit` — appends automated audit hook |
 | **User-global** | `npx @papabear911/ver ver-rules --global` | `~/.claude/ver/`, plus an `@ver/AGENTS.md` import in `~/.claude/CLAUDE.md` |
 | **Agent config** | `npx @papabear911/ver ver-rules --agent <name>` | the one config file that agent needs (see § 3) |
 

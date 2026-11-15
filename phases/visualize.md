@@ -62,6 +62,16 @@ Ask **one** clarifying question, wait for the answer, then ask the next only if 
 changed the plan. Never a list of five. Each question you can answer by reading the code is not a
 question — go read.
 
+### The Three Traps check (sensitive or multi-agent tasks)
+
+When a task touches sensitive surfaces (`security`, `data` schema, state deletion, or multi-agent delegation), surface and resolve the **Three Traps** before presenting the Vision:
+
+1. **Boundary/Failure Trap:** What happens if an external dependency fails, times out, or returns malformed data?
+2. **Ceiling Trap:** What is the concurrency, volume, or performance ceiling before this design breaks? (State the upgrade path).
+3. **Irreversibility Trap:** What data, state, or side-effect cannot be undone if this fails?
+
+Trivial, single-file, or fully-specified tasks bypass the Three Traps check.
+
 ### Tradeoff presentation format
 
 ```
@@ -84,9 +94,11 @@ Out of scope: [explicitly not touching]
 **Profiles loaded:** [from router, or "base loop"]
 **Done looks like:** [one observable sentence]
 **Approach:** [one sentence]
+**Contract Boundary:** [function signature, CLI flag, schema, or test assertion for caller or worker handoff]
 **Files touched:** [list, or "discovered in Establish"]
 **Assumptions:**
 - [falsifiable sentence]
+**The Three Traps:** [boundary safeguard, ceiling limit, reversibility check]
 **Out of scope:** [deliberately not changing]
 **Verification:** [exact command that proves it]
 ```

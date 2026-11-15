@@ -34,6 +34,7 @@ Three installation targets are available:
 | Target | Command | Result |
 |---|---|---|
 | **Project** | `npx @papabear911/ver ver-rules --project [dir]` | Places `AGENTS.md` and rule directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`) |
+| **Git Hook** | `npx @papabear911/ver ver-rules --hook [dir]` | Appends automated V.E.R. audit to `.git/hooks/pre-commit` |
 | **User-global** | `npx @papabear911/ver ver-rules --global` | Installs to `~/.claude/ver/` with an `@ver/AGENTS.md` import |
 | **Agent config** | `npx @papabear911/ver ver-rules --agent <name>` | Updates configuration for `claude`, `cursor`, or `gemini` |
 

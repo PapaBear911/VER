@@ -210,3 +210,13 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
 - **Rationale:** While the Ponytail ladder remains the underlying 7-rung framework name, application code is read by external developers, auditors, and clients who do not need internal framework jargon. `ceiling:` directly expresses the required information (the operational ceiling and upgrade path), consumes 1 token across all modern tokenizers, and carries no negative code smell connotations in automated review.
 - **Alternatives rejected:** `shortcut:` (perceived as tech debt or sloppiness in audits), `tradeoff:` (2 tokens, less explicit about scale limit), `hack:` (triggers security/linter warnings).
 - **Rollback plan:** To undo: replace `ceiling:` back with `ponytail:` in `references/ponytail-ladder.md`, `phases/engineer.md`, and `refine/enhance.md`.
+
+## 2026-11-15 — Contract-First Evolution: The Three Traps, Execution Slices, and --hook installer
+
+- **Decision:** Enhance the core loop across three dimensions: (1) Add The Three Traps check to `phases/visualize.md` for sensitive surfaces and multi-agent handoffs; (2) Add Execution Slices (Contract ➔ Implementation ➔ Integration) and Context Budget rules to `phases/engineer.md` for changes >2 files; (3) Add a zero-dependency, append-only git pre-commit hook installer (`ver-rules --hook [dir]`) in `bin/ver.js`.
+- **Rationale:** 
+  - Prevents premature planning on ambiguous, high-risk features by forcing boundary, ceiling, and irreversibility resolution upfront.
+  - Slices complex multi-file engineering into verifiable contract checkpoints without introducing task-queue or state-machine file bloat (honoring "No GSD state machine").
+  - `ver-rules --hook` turns static gate audits into an unbypassable, automated local git gate.
+- **Alternatives rejected:** Full GSD-style `.planning/` task state machine (rejected per invariant); open-ended conversational "grill-me" loops on trivial tasks (rejected to avoid reviewer fatigue).
+- **Rollback plan:** To undo: revert changes in `bin/ver.js`, `phases/visualize.md`, `phases/engineer.md`, and `profiles/devops.md`.

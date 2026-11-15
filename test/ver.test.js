@@ -332,3 +332,35 @@ test('package: bin name avoids collisions with shell builtins', () => {
   }
 });
 
+test('hook: installs and appends pre-commit hook safely', () => {
+  const dir = tmp();
+  // Failure if no .git
+  assert.throws(() => run(dir, '--hook', dir), /Not a git repository/);
+
+  // Success on git repo
+  const gitDir = path.join(dir, '.git');
+  fs.mkdirSync(gitDir, { recursive: true });
+  const out1 = run(dir, '--hook', dir);
+  assert.ok(out1.includes('Created .git/hooks/pre-commit'), 'did not create hook');
+  const hookPath = path.join(gitDir, 'hooks', 'pre-commit');
+  assert.ok(fs.existsSync(hookPath), 'hook file does not exist');
+  const content1 = fs.readFileSync(hookPath, 'utf8');
+  assert.ok(content1.includes('ver-rules --check'), 'hook missing audit command');
+
+  // Repeat call is idempotent / skips
+  const out2 = run(dir, '--hook', dir);
+  assert.ok(out2.includes('already includes'), 'repeat hook call did not skip');
+
+  // Appends to existing non-VER hook without overwriting user script
+  const dir2 = tmp();
+  const gitDir2 = path.join(dir2, '.git', 'hooks');
+  fs.mkdirSync(gitDir2, { recursive: true });
+  fs.writeFileSync(path.join(gitDir2, 'pre-commit'), '#!/bin/sh\necho "existing user hook"\n');
+  const out3 = run(dir2, '--hook', dir2);
+  assert.ok(out3.includes('Appended V.E.R. audit'), 'did not append to existing hook');
+  const content3 = fs.readFileSync(path.join(gitDir2, 'pre-commit'), 'utf8');
+  assert.ok(content3.includes('existing user hook'), 'overwrote existing user hook');
+  assert.ok(content3.includes('ver-rules --check'), 'did not append audit check');
+});
+
+

@@ -19,13 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Guarded ancestor-directory pruning against path traversal.
 
 ### Added
+- Git pre-commit hook installer: `ver-rules --hook [dir]` to append automated verification audits to `.git/hooks/pre-commit` safely.
+- The Three Traps protocol in `phases/visualize.md` for boundary, ceiling, and irreversibility checks on sensitive tasks.
+- Contract Boundary field in Minimal Spec template for multi-agent and worker handoffs.
+- Execution Slices protocol in `phases/engineer.md` for structured multi-file edits (>2 files or >50 lines) with Context Budget guidelines.
+- Branch awareness advisory in `profiles/devops.md` to prevent accidental commits to protected trunks (`main`/`master`).
 - Fourth refine pass: `refine/distill.md` for compressing external knowledge into VER-native references.
 - Universal core reference: `references/ver-core.md` summarizing the entire loop, gates, and anti-patterns.
 - GitHub Actions CI workflow (`.github/workflows/ci.yml`) testing Node 18, 20, 22 on Ubuntu and Windows.
 - Reproducible `package-lock.json` with zero dependencies.
 - Native standard library test coverage script (`npm run test:coverage`) at 97.74% line coverage.
 - Keep a Changelog documentation (`CHANGELOG.md`).
-- Six regression tests in `test/ver.test.js`.
+- Seven regression tests in `test/ver.test.js`.
 
 ### Removed
 - Retired redundant `TRIGGERS.md` lookup table in favor of the single-source Task Router in `AGENTS.md`.

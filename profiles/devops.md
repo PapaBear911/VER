@@ -6,6 +6,7 @@ Rule: When two profiles add gates to the same phase, the stricter gate wins.
 
 ## Adds to Visualize
 
+- **Branch awareness.** Confirm active branch. If on a protected trunk (`main` or `master`), recommend creating a feature branch before Phase 2.
 - **Change plan.** State exactly what will be created, modified, or destroyed.
 - **Blast radius.** If this fails, what breaks, and who notices? Name it before changing it.
 - Name the environment. Production is not staging, and the difference is the whole risk.

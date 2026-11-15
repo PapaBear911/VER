@@ -336,11 +336,44 @@ function checkGates(dir) {
   return true;
 }
 
+function installHook(dir) {
+  const gitDir = path.join(dir, '.git');
+  if (!fs.existsSync(gitDir)) {
+    console.error(`Error: Not a git repository (no .git directory found in ${dir}).`);
+    process.exitCode = 1;
+    return false;
+  }
+  const hooksDir = path.join(gitDir, 'hooks');
+  if (!fs.existsSync(hooksDir)) fs.mkdirSync(hooksDir, { recursive: true });
+  const hookFile = path.join(hooksDir, 'pre-commit');
+
+  const hookCheck = 'if command -v ver-rules >/dev/null 2>&1; then\n  ver-rules --check .\nelif [ -f "bin/ver.js" ]; then\n  node bin/ver.js --check .\nelse\n  npx @papabear911/ver ver-rules --check .\nfi';
+
+  if (fs.existsSync(hookFile)) {
+    const existing = fs.readFileSync(hookFile, 'utf8');
+    if (existing.includes('ver-rules --check') || existing.includes('V.E.R. audit hook')) {
+      console.log('pre-commit hook already includes V.E.R. audit (skipped).');
+      return true;
+    }
+    fs.appendFileSync(hookFile, `\n\n# --- V.E.R. audit hook ---\n${hookCheck}\n`);
+    try { fs.chmodSync(hookFile, 0o755); } catch {}
+    console.log('Appended V.E.R. audit to existing .git/hooks/pre-commit');
+    return true;
+  }
+
+  const script = `#!/bin/sh\n# --- V.E.R. audit hook ---\n${hookCheck}\n`;
+  fs.writeFileSync(hookFile, script, { mode: 0o755 });
+  try { fs.chmodSync(hookFile, 0o755); } catch {}
+  console.log('Created .git/hooks/pre-commit with V.E.R. audit.');
+  return true;
+}
+
 const HELP = `${pkg.name} ${pkg.version} — V.E.R. installer. Appends. Never replaces.
 
   ver-rules --project [dir]     Install into a repo (default: .)
   ver-rules --global            Install into ~/.claude/ver/ + import from ~/.claude/CLAUDE.md
   ver-rules --agent <name>      Install rules + config touch: claude, cursor, gemini
+  ver-rules --hook [dir]        Install pre-commit hook running audit before commits
   ver-rules --uninstall         Remove installed rules and imports (--project [dir] or --global)
   ver-rules --check [dir]       Audit V.E.R. gates, contracts, and invariants (default: .)
 
@@ -362,6 +395,13 @@ function main(argv) {
     const dir =
       checkAt !== -1 && a[checkAt + 1] && !a[checkAt + 1].startsWith('-') ? a[checkAt + 1] : '.';
     return checkGates(path.resolve(dir));
+  }
+
+  if (a.includes('--hook')) {
+    const hookAt = a.indexOf('--hook');
+    const dir =
+      hookAt !== -1 && a[hookAt + 1] && !a[hookAt + 1].startsWith('-') ? a[hookAt + 1] : '.';
+    return installHook(path.resolve(dir));
   }
 
   if (a.includes('--uninstall')) {
