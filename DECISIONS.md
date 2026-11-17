@@ -248,3 +248,14 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
   - Keeping manifest in `.ver/`: rejected to avoid creating a second hidden folder alongside `.ver-rules/`.
   - Manual migration: rejected because asking users to move files and rewrite relative paths risks breaking gates and pointers.
 - **Rollback plan:** To undo: revert changes in `bin/ver.js`, `test/ver.test.js`, and documentation.
+
+## 2026-11-15 — Delivery pivot: npm package to git checkout
+
+- **Decision:** Supersede the v2.0.0 npm distribution path. Deliver V.E.R. by `git clone --depth 1 --branch <tag> https://github.com/PapaBear911/VER.git ../ver-source`, then run `node ../ver-source/bin/ver.js` for `--project`, `--update`, `--hook`, `--agent`, `--global`, and `--uninstall`. Update `README.md`, `INSTALL.md`, `AGENTS.md`, and the installed pre-commit hook to use the checkout instead of `npx @papabear911/ver`.
+- **Rationale:** A shallow tag clone is a single, versioned, dependency-free artifact — no package-manager round trip, no `npx` resolution that could silently fall back to a wrong or stale version, and no risk of the published tarball drifting from the tagged source. The CLI's behavior is unchanged; only its bootstrap changes. The bin stays named `ver-rules`, so the cmd.exe `ver` collision work is preserved.
+- **Rejected alternatives:**
+  - Keeping npm as the primary path: rejected — it adds a distribution channel that must be re-verified against the tag on every release, and the repo's own release verification found source-audit green is not enough to prove package-migration safety.
+  - curl-based install: retained as a fallback, not the documented primary route.
+- **Amended invariants:** #9 — delivery mechanism becomes a Git tag checkout + installer CLI (npm remains available through `package.json` but is no longer the documented route).
+- **Supersedes:** "2026-10-10 — v2.0.0: npm distribution and installer CLI", whose npm rationale applied under npm delivery. Its installer-CLI and append-never-replace architecture continues unchanged.
+- **Rollback plan:** To undo: restore the `npx @papabear911/ver` / `npm exec … ver-rules` commands in `README.md`, `INSTALL.md`, and `AGENTS.md`, restore the hook's `npx @papabear911/ver --check .` fallback in `bin/ver.js`, and delete this entry.

@@ -34,7 +34,7 @@ Never preload everything. Read only what the current step needs.
 1. Loop and gates: `phases/visualize.md`, `phases/engineer.md`, `phases/release.md`.
 2. Always active while working: `references/karpathy-principles.md`, `references/ponytail-ladder.md`.
 3. Refine passes on demand: `refine/` — "validate", "review the diff", "tighten it", "simplify", "distill this".
-4. Close each phase against its gate in `ver-gates/`. Audit any time: `ver-rules --check [dir]` (or `npx @papabear911/ver ver-rules --check [dir]`) — static files and local contracts only. Session evidence (approval, executed tests) remains a manual agent check.
+4. Close each phase against its gate in `ver-gates/`. Audit any time: `ver-rules --check [dir]` — static files and local contracts only. Session evidence (approval, executed tests) remains a manual agent check.
 
 ## Task routing (before Phase 1)
 

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cross-domain candidate assessment: Added `references/cross-domain-candidates.md` evaluating Procurement, Incident Readiness, Education, Service Ops, and Audit Remediation.
 
 ### Changed
+- Delivery pivoted from the npm package `@papabear911/ver` to a Git tag checkout: install and maintain VER by cloning the tagged source (`git clone --depth 1 --branch v2.2.0` … `../ver-source`) and running `node ../ver-source/bin/ver.js`. The installed pre-commit hook now skips loudly instead of falling back to `npx @papabear911/ver --check .`. Invariant #9 and the `CONTEXT.md` delivery lines were overridden in lockstep (see `DECISIONS.md`, 2026-11-15 entry).
 - Invariant 6 (Dual Truth Standard): Overridden in lockstep to require terminal command execution with exit code 0 for software and analysis scripts, and observed execution or authoritative, witnessed execution/rehearsal records for real-world non-code interventions.
 - Invariant 13 (Three-Part Bounded Undo): Overridden in lockstep to codify responsible authority, active mitigation/suspension steps, and disclosed irreversible residuals when atomic physical/institutional reversal is impossible.
 - Hard Gate 2 (`ver-gates/run-before-done/GATE.md`) and Gate 3 (`ver-gates/deploy-aware/GATE.md`) updated with dual execution standards and bounded undo requirements.

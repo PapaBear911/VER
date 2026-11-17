@@ -4,7 +4,6 @@
 
 [![Node.js 18+](https://img.shields.io/badge/Node.js-18%2B-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-CLI-F7DF1E?logo=javascript&logoColor=black)](#technology-stack)
-[![npm version](https://img.shields.io/npm/v/%40papabear911%2Fver?logo=npm)](https://www.npmjs.com/package/@papabear911/ver)
 [![CI status](https://github.com/PapaBear911/VER/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PapaBear911/VER/actions/workflows/ci.yml?query=branch%3Amain)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue)](https://github.com/PapaBear911/VER/blob/main/LICENSE)
 
@@ -16,16 +15,17 @@
 
 ## Quickstart
 
-**Requires Node.js 18 or later and npm.** Run these commands from the root of the project you want to configure.
+**Requires Node.js 18 or later.** Run these commands from the root of the project you want to configure. The first clones the tagged source into a sibling directory; keep that checkout for the maintenance commands below.
 
 ```sh
-npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --project
-npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --check .
+git clone --depth 1 --branch v2.2.0 https://github.com/PapaBear911/VER.git ../ver-source
+node ../ver-source/bin/ver.js --project .
+node ../ver-source/bin/ver.js --check .
 ```
 
 The installer adds a VER pointer to your root `AGENTS.md` and places the full rules, profiles, and manifest in `.ver-rules/`. Open a fresh agent session so it loads the updated instructions. The audit should end with `All configured static checks passed.`
 
-The npm package is `@papabear911/ver`. Its executable is `ver-rules`, which avoids the built-in Windows `ver` command.
+The CLI's installed name is `ver-rules`, which avoids the built-in Windows `ver` command. `node ../ver-source/bin/ver.js` is the same entry point, run straight from the checkout.
 
 ### Install for a specific agent
 
@@ -33,18 +33,18 @@ Pick the command for your agent and run it from the project root. These commands
 
 | Agent | Command | Configuration |
 | --- | --- | --- |
-| Codex and other agents that load `AGENTS.md` | `npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --project` | `AGENTS.md` |
-| Claude Code | `npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --agent claude` | `CLAUDE.md` |
-| Cursor | `npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --agent cursor` | `.cursor/rules/ver.mdc` |
-| Gemini CLI | `npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --agent gemini` | `GEMINI.md` |
+| Codex and other agents that load `AGENTS.md` | `node ../ver-source/bin/ver.js --project .` | `AGENTS.md` |
+| Claude Code | `node ../ver-source/bin/ver.js --agent claude` | `CLAUDE.md` |
+| Cursor | `node ../ver-source/bin/ver.js --agent cursor` | `.cursor/rules/ver.mdc` |
+| Gemini CLI | `node ../ver-source/bin/ver.js --agent gemini` | `GEMINI.md` |
 
 ### Update, uninstall, or install a Git hook
 
 | Task | Command |
 | --- | --- |
-| Update project rules | `npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --update` |
-| Uninstall project rules | `npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --uninstall` |
-| Add the static audit to a Git pre-commit hook | `npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --hook` |
+| Update project rules | `node ../ver-source/bin/ver.js --update` |
+| Uninstall project rules | `node ../ver-source/bin/ver.js --uninstall` |
+| Add the static audit to a Git pre-commit hook | `node ../ver-source/bin/ver.js --hook` |
 
 On update, VER refreshes files whose hashes still match the install manifest. It keeps local modifications and preserves conflicting destinations during legacy migration. Uninstall uses that same ownership record to remove or restore unchanged files. Run the quickstart audit again after an update.
 
@@ -53,20 +53,20 @@ On update, VER refreshes files whose hashes still match the install manifest. It
 Run this from PowerShell or a POSIX shell. VER installs to your home directory and adds an import to your user-level Claude configuration.
 
 ```sh
-npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --global
-npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --check "$HOME/.ver-rules"
+node ../ver-source/bin/ver.js --global
+node ../ver-source/bin/ver.js --check "$HOME/.ver-rules"
 ```
 
-For later maintenance, use `--update --global` or `--uninstall --global` with the same package command.
+For later maintenance, use `--update --global` or `--uninstall --global` with the same checkout command.
 
-### Install from GitHub with Node.js
+### Refresh the checkout
 
-Run from your target project root. Use a new sibling directory for the VER checkout.
+To move to a newer tag, fetch it into the existing checkout and run the installer again from your project root.
 
 ```sh
-git clone --depth 1 --branch v2.2.0 https://github.com/PapaBear911/VER.git ../ver-source
-node ../ver-source/bin/ver.js --project .
-node ../ver-source/bin/ver.js --check .
+git -C ../ver-source fetch --depth 1 origin tag v2.2.0
+git -C ../ver-source checkout v2.2.0
+node ../ver-source/bin/ver.js --update
 ```
 
 ## Copyable prompts
@@ -76,9 +76,10 @@ Paste these into your agent chat. Replace bracketed text where needed.
 ### Install and verify VER
 
 ```text
-Install VER 2.2.0 in the current project:
-npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --project
-npm exec --yes --package=@papabear911/ver@2.2.0 -- ver-rules --check .
+Install VER 2.2.0 in the current project from GitHub:
+git clone --depth 1 --branch v2.2.0 https://github.com/PapaBear911/VER.git ../ver-source
+node ../ver-source/bin/ver.js --project .
+node ../ver-source/bin/ver.js --check .
 Report the audit result and the agent configuration files changed.
 ```
 
@@ -131,7 +132,7 @@ The task router selects domain profiles such as security, UX, docs, and testing.
 | Layer | Technology | Role |
 | --- | --- | --- |
 | ⬢ **Runtime** | Node.js 18+ · JavaScript | One-shot CLI with zero third-party runtime dependencies |
-| ▣ **Distribution** | npm · GitHub Releases | Scoped package, `ver-rules` executable, and tagged source |
+| ▣ **Distribution** | Git · GitHub Releases | Tagged source and the `ver-rules` installer CLI |
 | ◇ **Rules** | Markdown · `AGENTS.md` | Portable instructions, profiles, and gate definitions |
 | ◎ **Ownership** | JSON · SHA-256 | Tracks installed files and distinguishes local edits |
 | ✓ **Verification** | `node:test` · GitHub Actions | Installer tests and audits on Windows and Linux across Node 18, 20, and 22 |
