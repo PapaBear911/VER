@@ -521,7 +521,7 @@ function installHook(dir) {
   if (!fs.existsSync(hooksDir)) fs.mkdirSync(hooksDir, { recursive: true });
   const hookFile = path.join(hooksDir, 'pre-commit');
 
-  const hookCheck = 'if command -v ver-rules >/dev/null 2>&1; then\n  ver-rules --check .\nelif [ -f "bin/ver.js" ]; then\n  node bin/ver.js --check .\nelse\n  npx @papabear911/ver --check .\nfi';
+  const hookCheck = 'if command -v ver-rules >/dev/null 2>&1; then\n  ver-rules --check .\nelif [ -f "bin/ver.js" ]; then\n  node bin/ver.js --check .\nelse\n  echo "V.E.R. audit skipped: no ver-rules CLI on PATH" >&2\nfi';
 
   if (fs.existsSync(hookFile)) {
     const existing = fs.readFileSync(hookFile, 'utf8');

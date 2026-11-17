@@ -30,33 +30,28 @@ Three ways VER joins an existing file, in order of preference:
 
 ## 2. The Quick Install (Universal)
 
-One command installs the full rule set — `AGENTS.md` plus `profiles/`, `phases/`, `refine/`,
-`references/`, and `ver-gates/` — with no clone and no manual copying:
+One clone installs the full rule set — `AGENTS.md` plus `profiles/`, `phases/`, `refine/`,
+`references/`, and `ver-gates/` — with no manual copying:
 
 ```bash
-npx @papabear911/ver --project
-# On Windows, `ver` is a cmd.exe builtin that shadows PATH; the package bin is named
-# `ver-rules`. All `npx` commands above explicitly invoke `ver-rules` so they work
-# regardless of how many bins the package ships.
+git clone --depth 1 --branch v2.2.0 https://github.com/PapaBear911/VER.git ../ver-source
+node ../ver-source/bin/ver.js --project .
 ```
+
+Run these from your target project root. Keep the `../ver-source` checkout: every command below
+reuses it. The CLI's installed bin name is `ver-rules`, which avoids the cmd.exe builtin `ver`
+that shadows PATH on Windows; `node ../ver-source/bin/ver.js` is the same entry point.
 
 Install and maintenance commands
 
 | Path | Command | Writes to |
 |---|---|---|
-| **Project** | `npx @papabear911/ver --project [dir]` | `dir/.ver-rules/` — rule dirs, docs, manifest, plus root `AGENTS.md` |
-| **Update** | `npx @papabear911/ver --update [dir]` | `dir/.ver-rules/` — migrates legacy files, updates unmodified rules |
-| **Git Hook** | `npx @papabear911/ver --hook [dir]` | `.git/hooks/pre-commit` — appends automated audit hook |
-| **User-global** | `npx @papabear911/ver --global` | `~/.ver-rules/`, plus an `@~/.ver-rules/AGENTS.md` import in `~/.claude/CLAUDE.md` |
-| **Global Update** | `npx @papabear911/ver --update --global` | `~/.ver-rules/` — updates unmodified global rules |
-| **Agent config** | `npx @papabear911/ver --agent <name>` | the one config file that agent needs (see § 3) |
-
-Prefer a permanent CLI? Either works identically:
-
-```bash
-npm install -g @papabear911/ver && ver-rules --project
-npm install -D @papabear911/ver && npx -p @papabear911/ver ver-rules --project
-```
+| **Project** | `node ../ver-source/bin/ver.js --project [dir]` | `dir/.ver-rules/` — rule dirs, docs, manifest, plus root `AGENTS.md` |
+| **Update** | `node ../ver-source/bin/ver.js --update [dir]` | `dir/.ver-rules/` — migrates legacy files, updates unmodified rules |
+| **Git Hook** | `node ../ver-source/bin/ver.js --hook [dir]` | `.git/hooks/pre-commit` — appends automated audit hook |
+| **User-global** | `node ../ver-source/bin/ver.js --global` | `~/.ver-rules/`, plus an `@~/.ver-rules/AGENTS.md` import in `~/.claude/CLAUDE.md` |
+| **Global Update** | `node ../ver-source/bin/ver.js --update --global` | `~/.ver-rules/` — updates unmodified global rules |
+| **Agent config** | `node ../ver-source/bin/ver.js --agent <name>` | the one config file that agent needs (see § 3) |
 
 - **Consolidated subfolder:** All VER supporting directories (`profiles/`, `phases/`, `refine/`,
   `references/`, `ver-gates/`, `docs/`) and `ver-manifest.json` are installed inside a single `.ver-rules/`
@@ -121,7 +116,7 @@ automatically.
 Cursor reads `AGENTS.md` natively at the project root.
 
 - **Nothing else to do** if you use the native rule.
-- To add an explicit Cursor rule, run `npx @papabear911/ver --agent cursor`. It writes
+- To add an explicit Cursor rule, run `node ../ver-source/bin/ver.js --agent cursor`. It writes
   `.cursor/rules/ver.mdc` with required YAML frontmatter. Existing `.mdc` content is preserved.
 - **If `.cursorrules` exists (legacy):** leave it. Cursor reads both. This file still works but
   is deprecated.
@@ -225,9 +220,8 @@ Developer Mode — which is why the import is the default recommendation everywh
 Run the built-in checker to verify all 6 gates, contracts, manifest files, and marker integrity:
 
 ```bash
-ver-rules --check           # Audit current project directory
-ver-rules --check [dir]     # Audit target directory
-npx @papabear911/ver --check
+node ../ver-source/bin/ver.js --check        # Audit current project directory
+node ../ver-source/bin/ver.js --check [dir]  # Audit target directory
 ```
 
 ### Conversational Verification
@@ -261,28 +255,30 @@ are skipped (`skipped`). Running `ver-rules --project` over an existing install 
 
 ### Upgrading the CLI
 
+Point the checkout at the newer tag, then rerun the installer:
+
 ```bash
-npm install -g @papabear911/ver@latest   # if installed globally
-npm install -D @papabear911/ver@latest   # if installed in project
+git -C ../ver-source fetch --depth 1 origin tag v2.2.0
+git -C ../ver-source checkout v2.2.0
 ```
 
 ### Refreshing Rules & Coordinated Updates
 
-Run `npx @papabear911/ver@latest --update` to add new rules and refresh rules whose hashes still match the recorded install. Use `npx @papabear911/ver@latest --update --global` for a global installation.
+Run `node ../ver-source/bin/ver.js --update` to add new rules and refresh rules whose hashes still match the recorded install. Use `node ../ver-source/bin/ver.js --update --global` for a global installation.
 
 For older installations where rule files are already present, updating shared base rules (`phases/`, `ver-gates/`, `references/`) requires a coordinated update path:
 
 1. **Automatic Refresh (Recommended):**
    If you have not hand-modified the generated rule files, uninstall and re-install:
    ```bash
-   ver-rules --uninstall
-   npx @papabear911/ver@latest --project
+   node ../ver-source/bin/ver.js --uninstall
+   node ../ver-source/bin/ver.js --project
    ```
    This uninstalls the tracked files whose hashes match the manifest, then places the latest release files. User-owned content in `AGENTS.md` and custom files remain completely untouched.
 
 2. **Selective / Custom Update:**
    If you have added custom project rules inside `phases/` or `profiles/`:
-   - Run `npx @papabear911/ver@latest --project` to copy newly added profile files automatically.
+   - Run `node ../ver-source/bin/ver.js --project` to copy newly added profile files automatically.
    - Inspect upstream changes to shared guides (`phases/`, `ver-gates/`, `INVARIANTS.md`) using git diff:
      ```bash
      git diff origin/main -- phases/ ver-gates/ INVARIANTS.md
@@ -293,19 +289,15 @@ For older installations where rule files are already present, updating shared ba
 
 ## 8. Uninstall
 
-**Removing the CLI** (it wrote nothing — it only placed files):
-
-```bash
-npm uninstall -g @papabear911/ver   # if installed globally
-npm uninstall @papabear911/ver      # if installed as a project dependency
-```
+**Removing the CLI** (it wrote nothing — it only placed files): delete the `../ver-source`
+checkout. Nothing was installed into a package manager.
 
 **Removing the rules automatically:**
 
 ```bash
-ver-rules --uninstall                   # remove from current project (.ver-rules)
-ver-rules --uninstall --project [dir]   # remove from target project (.ver-rules)
-ver-rules --uninstall --global          # remove global install (~/.ver-rules)
+node ../ver-source/bin/ver.js --uninstall                   # remove from current project (.ver-rules)
+node ../ver-source/bin/ver.js --uninstall --project [dir]   # remove from target project (.ver-rules)
+node ../ver-source/bin/ver.js --uninstall --global          # remove global install (~/.ver-rules)
 ```
 
 Or manually, in the reverse order they were installed:
