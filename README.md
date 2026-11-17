@@ -18,7 +18,7 @@
 **Requires Node.js 18 or later.** Run these commands from the root of the project you want to configure. The first clones the tagged source into a sibling directory; keep that checkout for the maintenance commands below.
 
 ```sh
-git clone --depth 1 --branch v2.2.0 https://github.com/PapaBear911/VER.git ../ver-source
+git clone --depth 1 --branch v2.2.1 https://github.com/PapaBear911/VER.git ../ver-source
 node ../ver-source/bin/ver.js --project .
 node ../ver-source/bin/ver.js --check .
 ```
@@ -64,8 +64,8 @@ For later maintenance, use `--update --global` or `--uninstall --global` with th
 To move to a newer tag, fetch it into the existing checkout and run the installer again from your project root.
 
 ```sh
-git -C ../ver-source fetch --depth 1 origin tag v2.2.0
-git -C ../ver-source checkout v2.2.0
+git -C ../ver-source fetch --depth 1 origin tag v2.2.1
+git -C ../ver-source checkout v2.2.1
 node ../ver-source/bin/ver.js --update
 ```
 
@@ -76,8 +76,8 @@ Paste these into your agent chat. Replace bracketed text where needed.
 ### Install and verify VER
 
 ```text
-Install VER 2.2.0 in the current project from GitHub:
-git clone --depth 1 --branch v2.2.0 https://github.com/PapaBear911/VER.git ../ver-source
+Install VER 2.2.1 in the current project from GitHub:
+git clone --depth 1 --branch v2.2.1 https://github.com/PapaBear911/VER.git ../ver-source
 node ../ver-source/bin/ver.js --project .
 node ../ver-source/bin/ver.js --check .
 Report the audit result and the agent configuration files changed.
