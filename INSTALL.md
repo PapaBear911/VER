@@ -34,7 +34,7 @@ One clone installs the full rule set — `AGENTS.md` plus `profiles/`, `phases/`
 `references/`, and `ver-gates/` — with no manual copying:
 
 ```bash
-git clone --depth 1 --branch v2.2.0 https://github.com/PapaBear911/VER.git ../ver-source
+git clone --depth 1 --branch v2.2.1 https://github.com/PapaBear911/VER.git ../ver-source
 node ../ver-source/bin/ver.js --project .
 ```
 
@@ -167,9 +167,9 @@ When your agent has its own config file and no import mechanism, the installer a
 block at the **top** of the existing file, above your existing content:
 
 ```markdown
-<!-- VER v2.2.0 — begin -->
+<!-- VER v2.2.1 — begin -->
 Read AGENTS.md at the repo root. Apply the VER loop to every task.
-<!-- VER v2.2.0 — end -->
+<!-- VER v2.2.1 — end -->
 ```
 
 The marker makes repeat installs idempotent — running the installer again does not duplicate the
@@ -185,9 +185,9 @@ is not yours to touch.
 rule to `.ver-rules/AGENTS.md` instead, prepending a marked block pointer to the top of yours:
 
 ```markdown
-<!-- VER v2.2.0 — begin -->
+<!-- VER v2.2.1 — begin -->
 Read .ver-rules/AGENTS.md. Apply the VER loop to every task.
-<!-- VER v2.2.0 — end -->
+<!-- VER v2.2.1 — end -->
 ```
 
 Your file keeps its content verbatim; the rule is cleanly referenced without collision.
@@ -258,8 +258,8 @@ are skipped (`skipped`). Running `ver-rules --project` over an existing install 
 Point the checkout at the newer tag, then rerun the installer:
 
 ```bash
-git -C ../ver-source fetch --depth 1 origin tag v2.2.0
-git -C ../ver-source checkout v2.2.0
+git -C ../ver-source fetch --depth 1 origin tag v2.2.1
+git -C ../ver-source checkout v2.2.1
 ```
 
 ### Refreshing Rules & Coordinated Updates

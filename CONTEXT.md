@@ -10,7 +10,7 @@ The tagline is frozen. It is the constitution, not decoration: every rule, gate,
 
 ## Facts
 
-- **Version:** 2.2.0 — cross-domain governance profiles, dual truth standard, and .ver-rules subfolder consolidation
+- **Version:** 2.2.1 — cross-domain governance profiles, dual truth standard, and .ver-rules subfolder consolidation
 - **Author:** Ver Sangil
 - **License:** MIT
 - **Root file:** `AGENTS.md` — universal rule; delivered via `@papabear911/ver` with `ver-rules` installer CLI. Still no daemon or inference-time runtime.
