@@ -167,9 +167,9 @@ When your agent has its own config file and no import mechanism, the installer a
 block at the **top** of the existing file, above your existing content:
 
 ```markdown
-<!-- VER v2.2.1 — begin -->
+<!-- VER — begin -->
 Read AGENTS.md at the repo root. Apply the VER loop to every task.
-<!-- VER v2.2.1 — end -->
+<!-- VER — end -->
 ```
 
 The marker makes repeat installs idempotent — running the installer again does not duplicate the
@@ -185,9 +185,9 @@ is not yours to touch.
 rule to `.ver-rules/AGENTS.md` instead, prepending a marked block pointer to the top of yours:
 
 ```markdown
-<!-- VER v2.2.1 — begin -->
+<!-- VER — begin -->
 Read .ver-rules/AGENTS.md. Apply the VER loop to every task.
-<!-- VER v2.2.1 — end -->
+<!-- VER — end -->
 ```
 
 Your file keeps its content verbatim; the rule is cleanly referenced without collision.

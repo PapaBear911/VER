@@ -1,4 +1,4 @@
-# V.E.R. — v2.2.1
+# V.E.R.
 
 > See it. Build it. Ship it. Every release feeds the next vision.
 
@@ -56,7 +56,7 @@ is a missed gate.
 | research | `profiles/research.md` | study, cohort, trial, hypothesis, methodology, empirical |
 
 `@domain` forces one; `@domain+domain` forces several. Two profiles on one phase → the stricter gate
-wins. Action disambiguation: software retry/IAM policies route to programming/security; code research routes to lookup/programming. No match → base loop. A pure question → answer directly (see Entry).
+wins. Action disambiguation: software retry/IAM policies route to programming/security; code research routes to programming. No match → base loop. A pure question → answer directly (see Entry).
 
 ## Core rules
 

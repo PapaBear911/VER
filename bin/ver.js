@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
+const { execSync } = require('child_process');
 
 const pkg = require('../package.json');
 const SRC = path.join(__dirname, '..');
@@ -500,6 +501,46 @@ function checkGates(dir) {
     }
   }
   if (markersBalanced) ok('deploy-aware', 'markers balanced and intact');
+
+  // test-integrity: git diff must not remove test assertions without Visualize approval
+  let ti = true;
+  try {
+    const stat = execSync('git diff --stat', { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    if (/test|spec/.test(stat)) {
+      const diff = execSync('git diff', { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      if (diff.match(/^-\s*(assert|expect|should)\s*\(/m)) {
+        const lf = path.join(dir, 'vision-log.md');
+        ti = fs.existsSync(lf) && fs.readFileSync(lf, 'utf8').match(/— \*\*(?:Recurs|Promoted):\*\*/);
+      }
+    }
+  } catch {}
+  if (ti) ok('test-integrity', 'no test assertions removed');
+  else fail('test-integrity', 'test assertions removed without approval');
+
+  // spec-before-edit: source modifications require vision-log approval
+  let sb = true;
+  try {
+    const diff = execSync('git diff --name-only', { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const modified = diff ? diff.split('\n').filter(f => f.trim() && !f.startsWith('.ver-rules') && !f.startsWith('node_modules')) : [];
+    if (modified.length > 0) sb = fs.existsSync(path.join(dir, 'vision-log.md'));
+  } catch {}
+  if (sb) ok('spec-before-edit', 'source modifications have vision approval');
+  else fail('spec-before-edit', 'source modified without vision approval');
+
+  // run-before-done: execution evidence must be recorded
+  const vlog = path.join(dir, 'vision-log.md');
+  if (!fs.existsSync(vlog)) {
+    ok('run-before-done', 'no vision-log.md (skipped)');
+  } else {
+    const lc = fs.readFileSync(vlog, 'utf8').trim();
+    const entries = lc.split(/^## (?=\d{4}-\d{2}-\d{2})/m).filter((e) => e.trim());
+    const latest = entries[entries.length - 1];
+    if (latest && /\*\*Learning:\*\*/.test(latest)) {
+      ok('run-before-done', 'execution evidence recorded');
+    } else {
+      fail('run-before-done', 'no execution evidence recorded');
+    }
+  }
 
   if (!passed) {
     process.exitCode = 1;

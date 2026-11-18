@@ -10,10 +10,9 @@ The tagline is frozen. It is the constitution, not decoration: every rule, gate,
 
 ## Facts
 
-- **Version:** 2.2.1 — cross-domain governance profiles, dual truth standard, and .ver-rules subfolder consolidation
 - **Author:** Ver Sangil
 - **License:** MIT
-- **Root file:** `AGENTS.md` — universal rule; delivered via `@papabear911/ver` with `ver-rules` installer CLI. Still no daemon or inference-time runtime.
+- **Root file:** `AGENTS.md` — universal rule; delivered via Git tag checkout (`git clone --depth 1 --branch <tag> .../VER.git ../ver-source`) with `ver-rules` installer CLI. Still no daemon or inference-time runtime.
 - **Loop:** Visualize → Engineer → Release → Visualize.
 - **Router:** classify the task before Phase 1; load relevant additive profiles from `profiles/`.
 - **Stacking:** profiles stack; where gates overlap, the stricter gate wins.
@@ -43,7 +42,7 @@ institutional authorization recorded in the Vision.
 The frozen router shape is a keyword/domain table plus `@domain` and `@domain+domain`
 overrides. The router selects profiles; profiles only add gates and never replace the base loop.
 The ten domain profiles are programming, security, ui, ux, data, devops, testing, docs, policy, and research.
-Action-based disambiguation routes software policies to programming/security and code investigation to lookup/programming.
+Action-based disambiguation routes software policies to programming/security and code investigation to programming.
 No match runs the base loop. A pure question bypasses routing.
 
 ## Refine Pass

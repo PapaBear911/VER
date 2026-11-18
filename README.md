@@ -76,7 +76,7 @@ Paste these into your agent chat. Replace bracketed text where needed.
 ### Install and verify VER
 
 ```text
-Install VER 2.2.1 in the current project from GitHub:
+Install VER in the current project from GitHub:
 git clone --depth 1 --branch v2.2.1 https://github.com/PapaBear911/VER.git ../ver-source
 node ../ver-source/bin/ver.js --project .
 node ../ver-source/bin/ver.js --check .

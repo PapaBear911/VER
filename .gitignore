@@ -1,6 +1,3 @@
-# Local receipt log (local-only, never uploaded to git)
-vision-log.md
-
 # Dependencies
 node_modules/
 
