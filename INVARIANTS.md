@@ -15,9 +15,9 @@ by drift.
 9. Phase names, sub-step names, and refine-pass names are frozen. 1.x froze the delivery
    mechanism (root `AGENTS.md`, no CLI); v2.0.0 supersedes that clause — delivery is now npm +
    installer CLI; v2.1.2 supersedes refine-pass names to formally add Distill (`refine/distill.md`);
-   v2.2.0 supersedes the delivery clause — primary delivery is now a Git tag checkout + installer
-   CLI (npm remains available but is no longer the documented route), per the dated `DECISIONS.md`
-   entries.
+   v2.2.0/v2.2.2 supersedes the delivery clause — delivery is purely a Git tag checkout via
+   GitHub commands + installer CLI (npm and npx package distribution is retired), per the dated
+   `DECISIONS.md` entries.
 10. The router shape is frozen: keyword/domain table plus `@domain` / `@domain+domain`.
 11. Profiles are additive: they add gates to existing phases; they never replace the loop.
 12. The security gate runs on every Release. Non-negotiable.

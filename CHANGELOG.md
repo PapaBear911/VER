@@ -5,6 +5,16 @@ All notable changes to the V.E.R. project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.2] - 2026-11-19
+
+### Changed
+- Complete retirement of npm/npx package distribution in favor of pure GitHub git-tag checkout delivery (`git clone --depth 1 --branch v2.2.2`).
+- Pinned delivery tag updated from `v2.2.1` to `v2.2.2` in `README.md`, `INSTALL.md`, and `examples/walkthrough.md`.
+- Marked `package.json` with `"private": true` and removed `"prepublishOnly"` script to prevent accidental npm registry publication.
+- Removed stale `"VERSION"` entry from `package.json` `files` array.
+- Synchronized manual curl/clone install commands in `INSTALL.md` to reference the consolidated `.ver-rules/` folder.
+- Version bumped to 2.2.2 in `package.json` and `package-lock.json`.
+
 ## [2.2.1] - 2026-11-17
 
 ### Changed

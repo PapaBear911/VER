@@ -34,7 +34,7 @@ One clone installs the full rule set — `AGENTS.md` plus `profiles/`, `phases/`
 `references/`, and `ver-gates/` — with no manual copying:
 
 ```bash
-git clone --depth 1 --branch v2.2.1 https://github.com/PapaBear911/VER.git ../ver-source
+git clone --depth 1 --branch v2.2.2 https://github.com/PapaBear911/VER.git ../ver-source
 node ../ver-source/bin/ver.js --project .
 ```
 
@@ -80,7 +80,8 @@ For the full reference set by hand:
 ```bash
 git clone https://github.com/PapaBear911/VER.git /tmp/ver-src
 cp /tmp/ver-src/AGENTS.md .
-cp -r /tmp/ver-src/profiles /tmp/ver-src/phases /tmp/ver-src/refine /tmp/ver-src/references /tmp/ver-src/ver-gates .
+mkdir -p .ver-rules
+cp -r /tmp/ver-src/profiles /tmp/ver-src/phases /tmp/ver-src/refine /tmp/ver-src/references /tmp/ver-src/ver-gates .ver-rules/
 ```
 
 ---
@@ -258,8 +259,8 @@ are skipped (`skipped`). Running `ver-rules --project` over an existing install 
 Point the checkout at the newer tag, then rerun the installer:
 
 ```bash
-git -C ../ver-source fetch --depth 1 origin tag v2.2.1
-git -C ../ver-source checkout v2.2.1
+git -C ../ver-source fetch --depth 1 origin tag v2.2.2
+git -C ../ver-source checkout v2.2.2
 ```
 
 ### Refreshing Rules & Coordinated Updates
