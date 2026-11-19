@@ -259,3 +259,17 @@ alternatives rejected. Do not rewrite a past decision; supersede it with a new d
 - **Amended invariants:** #9 — delivery mechanism becomes a Git tag checkout + installer CLI (npm remains available through `package.json` but is no longer the documented route).
 - **Supersedes:** "2026-10-10 — v2.0.0: npm distribution and installer CLI", whose npm rationale applied under npm delivery. Its installer-CLI and append-never-replace architecture continues unchanged.
 - **Rollback plan:** To undo: restore the `npx @papabear911/ver` / `npm exec … ver-rules` commands in `README.md`, `INSTALL.md`, and `AGENTS.md`, restore the hook's `npx @papabear911/ver --check .` fallback in `bin/ver.js`, and delete this entry.
+
+## 2026-11-19 — v2.2.2: Pure GitHub delivery and complete retirement of npm package distribution
+
+- **Decision:** Fully retire npm/npx package distribution. Deliver V.E.R. exclusively through Git tag checkout via GitHub commands (`git clone --depth 1 --branch <tag> https://github.com/PapaBear911/VER.git ../ver-source`) and Node execution (`node ../ver-source/bin/ver.js`). Mark `package.json` as `"private": true`, remove stale `"VERSION"` file reference from `package.json` files list, remove `"prepublishOnly"` script, synchronize all documentation and examples to `v2.2.2`, and correct manual copy targets in `INSTALL.md` to `.ver-rules/`.
+- **Rationale:**
+  - Pinned GitHub tag checkouts provide zero-dependency, tamper-evident installations directly from source without reliance on external package registries.
+  - Eliminating npm/npx removes dual-distribution surface maintenance and eliminates risk of package publishing drift.
+  - Marking `package.json` as private prevents accidental publication to npm while preserving local testing via Node test runner.
+- **Rejected alternatives:**
+  - Dual delivery (npm + GitHub): rejected per user mandate to eliminate npm/npx distribution entirely.
+  - Deleting `package.json`: rejected because `package.json` is required by Node for package metadata, bin declarations, test runner scripts, and engines declaration.
+- **Amended invariants:** #9 — delivery mechanism is purely Git tag checkout via GitHub commands + installer CLI; npm/npx package distribution is retired.
+- **Supersedes:** Any remaining references to npm package availability.
+- **Rollback plan:** To undo: revert this entry in `DECISIONS.md`, unmark `private` in `package.json`, restore `v2.2.1` references, and re-commit.

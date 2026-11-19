@@ -49,3 +49,7 @@ Landing: references/ver-core.md
 ## 2026-11-17 — Release v2.2.1: version bump and tag pins
 - **Learning:** A patch release that only bumps a version still hardcodes that version in install commands, ownership markers, and the context summary — a "docs-only" bump has a mechanical surface (README/INSTALL clone pins, `<!-- VER -->` markers) that must move in lockstep with VERSION, package.json, package-lock, AGENTS header, and a new CHANGELOG section. Skipping the marker/lockfile sweep leaves installs pointing at the previous tag.
 - **Next V seed:** Automate the version bump as a single `npm version` / scripted sweep so every pin (except historical records) moves in one step.
+
+## 2026-11-19 — Release v2.2.2: Pure GitHub delivery and npm package distribution retirement
+- **Learning:** Retiring npm/npx package distribution in favor of pure GitHub tag checkouts requires decoupling the package manager from installation docs, marking package.json private to prevent accidental publishing, and synchronizing manual install instructions with the consolidated layout in lockstep with invariant overrides.
+- **Next V seed:** Add automated pre-tag audit script checking for any lingering version number or package-manager references before tagging releases.

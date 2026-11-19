@@ -65,7 +65,7 @@ Optional, four passes, each one file:
 - **Refine names:** Validate, Enhance, Review, Distill.
 - **Router shape:** domain keyword table and `@domain` / `@domain+domain` syntax; profile additions are allowed, syntax changes are not.
 - **Always-active rules:** Karpathy principles and the 7-rung Ponytail ladder.
-- **Delivery:** Git tag checkout (`git clone --depth 1 --branch <tag> .../VER.git ../ver-source`) run via `node ../ver-source/bin/ver.js`; a one-shot `ver-rules` installer CLI with no daemon or inference-time runtime. The npm package remains available but is not the documented primary route.
+- **Delivery:** Pure Git tag checkout (`git clone --depth 1 --branch <tag> .../VER.git ../ver-source`) run via `node ../ver-source/bin/ver.js`; a one-shot `ver-rules` installer CLI with no daemon, package-manager dependency, or inference-time runtime. npm and npx package installation are retired.
 - **Install paths:** project (`ver-rules --project [dir]`), update (`ver-rules --update [dir]`), git hook (`ver-rules --hook [dir]`), user-global (`ver-rules --global`), or agent config (`ver-rules --agent claude|cursor|gemini`).
 - **Rule layout:** Supporting rule directories (`profiles/`, `phases/`, `refine/`, `references/`, `ver-gates/`, `docs/`) and `ver-manifest.json` are consolidated in `.ver-rules/` (`~/.ver-rules/` globally). Legacy root VER folders are automatically migrated into `.ver-rules/`.
 - **Installation:** append, never replace any existing agent configuration or user content.
@@ -73,8 +73,8 @@ Optional, four passes, each one file:
 ## Stability commitment (1.x)
 
 Phase names, sub-step names, refine-pass names, tagline, acronym, and router syntax remain frozen.
-The 1.x delivery freeze is superseded in 2.0.0 by the npm package and one-shot installer CLI; the
-npm delivery is in turn superseded in 2.2.0 by the Git tag checkout, per the dated decisions in
+The 1.x delivery freeze is superseded in 2.0.0 by the installer CLI; npm distribution is in turn
+retired in 2.2.0/2.2.2 in favor of pure Git tag checkout and GitHub commands, per the dated decisions in
 `DECISIONS.md`. 1.x's other stability commitments remain unchanged.
 
 Trust layers must not shift under their users. This commitment is recorded in `INVARIANTS.md`
